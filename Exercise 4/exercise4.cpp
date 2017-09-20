@@ -89,7 +89,8 @@ void write_data(char* file_name){
     long nodeA;
     long nodeB;
 
-    output_graph.open(file_name);
+    output_graph.open(file_name, ios::out);
+    cout << file_name << " file opened"<<endl;
 
     for(int i=0;i<matrix_length;i++){
         for(int j=i+1;j<matrix_length;j++){
@@ -98,11 +99,14 @@ void write_data(char* file_name){
                 nodeB = j+matrix_offset;
 
                 output_graph<<nodeA<<" "<<nodeB<<endl;
+                cout<<"Writing: "<<nodeA<<" "<<nodeB<<endl;
             }
         }
     }
 
     output_graph.close();
+
+    cout << file_name << " file closed"<<endl;
 }
 
 /**
