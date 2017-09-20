@@ -7,27 +7,22 @@
 
 using namespace std;
 
-/* - - - - - - - - - - - - - - - - - STRUCTS - - - - - - - - - - - - - - - - - - - - */
-
-struct node{
-    long id;
-    long first_neighbour;
-};
-typedef struct node node;
-
 /* - - - - - - - - - - - - - - - - - VARIABLES - - - - - - - - - - - - - - - - - - - - */
 
-long *graph = NULL;
+long matrix_length;
+long matrix_offset;
+int** matrix;
 fstream input_graph;
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
 
 int read_file(char* name);
-long get_number_nodes(fstream &file);
-long get_number_edges(fstream &file);
-void set_degree_graph(fstream &file);
-node* initialize_node_array(int length);
-void destroy_node_array(node* array);
+void get_number_nodes(fstream &file, long &min_id, long &max_id);
+void read_data(fstream &file);
+void write_data(char* file_name);
+void add_edge(long nodeA, long nodeB);
+void initialize_matrix();
+void deinitialize_matrix();
 
 /* - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - */
 
@@ -39,7 +34,11 @@ int main(int argc, char** argv) {
     if(argc > 1)
         read_file(argv[1]);
     else
-        read_file("graph3.txt");
+        read_file("../graph3.txt");
+
+    cout << "Data inserted into the matrix" << endl;
+
+    write_data("output.txt");
 
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
@@ -52,98 +51,101 @@ int read_file(char* name){
     input_graph.open(name);
 
     //Get biggest ID number
-    long max_id = get_number_nodes(input_graph);
+    long max_id;
+    long min_id;
+    long number_nodes;
+    long number_edges;
+
+    get_number_nodes(input_graph, min_id, max_id);
+
+    matrix_length = max_id - min_id + 1;
+    matrix_offset = min_id;
+
+    initialize_matrix();
 
     //Set file pointer to the beginning of the file
     input_graph.clear();
     input_graph.seekg(0, input_graph.beg);
 
-    //Get number of edges
-    long number_edges = get_number_edges(input_graph);
+    read_data(input_graph);
 
-    input_graph.clear();
-    input_graph.seekg(0, input_graph.beg);
 
-    cout<< "Supposed number of nodes: "<<max_id<<endl;
-    cout<< "Supposed number of edges: "<<number_edges<<endl;
-
-    graph_degree = new long[max_id];
-
-    set_degree_graph(input_graph);
-
-    for(int i=0;i<max_id;i++){
-        cout << "d( "<<i<<" ) = "<<graph_degree[i]<<endl;
-    }
-
-    delete(graph_degree);
     input_graph.close();
 }
 
-long get_number_nodes(fstream &file){
-    long id;
-    long max_id=0;
-
-    //Find biggest number
-    while(file>>id)
-        if(id>max_id)
-            max_id = id;
-
-    return max_id;
-}
-
-long get_number_edges(fstream &file){
-    long count = 0;
-    long value;
-    // Count how many couples there are in the file
-    while(file>>value){
-        file>>value;
-        count++;
-    }
-    return count;
-}
-
-void set_degree_graph(fstream &file){
-    if(graph_degree == NULL)
-        return;
-
+void read_data(fstream &file){
     long nodeA;
     long nodeB;
 
     while(file>>nodeA){
         file>>nodeB;
 
-        graph_degree[nodeA]++;
-        graph_degree[nodeB]++;
+        add_edge(nodeA, nodeB);
     }
 }
 
+void write_data(char* file_name){
+    fstream output_graph;
+    long nodeA;
+    long nodeB;
 
-int add_node(int node){
+    output_graph.open(file_name);
 
+    for(int i=0;i<matrix_length;i++){
+        for(int j=i+1;j<matrix_length;j++){
+            if(matrix[i][j] > 0) {
+                nodeA = i+matrix_offset;
+                nodeB = j+matrix_offset;
+
+                output_graph<<nodeA<<" "<<nodeB<<endl;
+            }
+        }
+    }
+
+    output_graph.close();
 }
 
-int add_edge(int node, int neighbour){
+/**
+ * It find the total number of nodes by searching the minimum and maximum ID in the file and it considers them as the first and the last one respectively
+ * If nodes between min and max are not in any edges of the file, they are considered as nodes without any connections (single component)
+ */
+void get_number_nodes(fstream &file, long &min_id, long &max_id){
+    long id;
+    max_id=0;
+    min_id=LONG_MAX;
 
+    //Find biggest and the smallest ID
+    //Then it consider the smallest one as the first node
+    //And the biggest one as the last one
+    //All nodes thar are not showed in the list are considered as a single node not connected
+    while(file>>id){
+        if(id>max_id)
+            max_id = id;
+        if(id<min_id)
+            min_id = id;
+    }
 }
 
-int check_node_existence(int node){
+void add_edge(long nodeA, long nodeB){
+    if(nodeA == nodeB)
+        return;
 
+    matrix[nodeA-matrix_offset][nodeB-matrix_offset] = 1;
+    matrix[nodeB-matrix_offset][nodeA-matrix_offset] = 1;
 }
 
-int check_edge_existence(int node, int neighbour){
+void initialize_matrix(){
+    matrix = new int*[matrix_length];
 
+    for(int i=0;i<matrix_length;i++) {
+        matrix[i] = new int[matrix_length];
+        memset(matrix[i], 0, sizeof(int)*matrix_length);
+    }
 }
 
-int is_self_loop(int node, int neighbour){
-    return node == neighbour ? TRUE: FALSE;
+void deinitialize_matrix(){
+    for(int i=0;i<matrix_length;i++) {
+        delete[] matrix[i];
+    }
+    delete[] matrix;
 }
-
-node* initialize_node_array(int length){
-    node* array = new node[length];
-    return array;
-}
-
-void destroy_node_array(node* array){
-    delete array;
-}
-

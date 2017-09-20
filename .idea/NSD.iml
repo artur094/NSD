@@ -27,7 +27,7 @@
           <root url="file:///System/Library/Frameworks/InstantMessage.framework/Headers" />
           <root url="file:///System/Library/Frameworks/MapKit.framework/Headers" />
           <root url="file:///System/Library/Frameworks/DirectoryService.framework/Headers" />
-          <root url="file:///System/Library/Frameworks/ScriptingBridge.framework/Headers" />
+          <root url="file:///System/Library/Frameworks/SafariServices.framework/Headers" />
           <root url="file:///System/Library/Frameworks/InstallerPlugins.framework/Headers" />
           <root url="file:///System/Library/Frameworks/ForceFeedback.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreMediaIO.framework/Headers" />
@@ -92,6 +92,7 @@
           <root url="file:///System/Library/Frameworks/OpenDirectory.framework/Headers" />
           <root url="file:///System/Library/Frameworks/OpenDirectory.framework/Frameworks/CFOpenDirectory.framework/Headers" />
           <root url="file:///System/Library/Frameworks/IOBluetooth.framework/Headers" />
+          <root url="file:///System/Library/Frameworks/ScriptingBridge.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreAudio.framework/Headers" />
           <root url="file:///System/Library/Frameworks/DiskArbitration.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreBluetooth.framework/Headers" />
@@ -187,7 +188,7 @@
           <root url="file:///Library/Frameworks/iTunesLibrary.framework/Headers" />
           <root url="file:///Library/Frameworks/WacomMultiTouch.framework/Headers" />
           <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include" />
-          <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.1.0/include" />
+          <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include" />
         </CLASSES>
         <SOURCES>
           <root url="file:///System/Library/Frameworks/AudioToolbox.framework/Headers" />
@@ -208,7 +209,7 @@
           <root url="file:///System/Library/Frameworks/InstantMessage.framework/Headers" />
           <root url="file:///System/Library/Frameworks/MapKit.framework/Headers" />
           <root url="file:///System/Library/Frameworks/DirectoryService.framework/Headers" />
-          <root url="file:///System/Library/Frameworks/ScriptingBridge.framework/Headers" />
+          <root url="file:///System/Library/Frameworks/SafariServices.framework/Headers" />
           <root url="file:///System/Library/Frameworks/InstallerPlugins.framework/Headers" />
           <root url="file:///System/Library/Frameworks/ForceFeedback.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreMediaIO.framework/Headers" />
@@ -273,6 +274,7 @@
           <root url="file:///System/Library/Frameworks/OpenDirectory.framework/Headers" />
           <root url="file:///System/Library/Frameworks/OpenDirectory.framework/Frameworks/CFOpenDirectory.framework/Headers" />
           <root url="file:///System/Library/Frameworks/IOBluetooth.framework/Headers" />
+          <root url="file:///System/Library/Frameworks/ScriptingBridge.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreAudio.framework/Headers" />
           <root url="file:///System/Library/Frameworks/DiskArbitration.framework/Headers" />
           <root url="file:///System/Library/Frameworks/CoreBluetooth.framework/Headers" />
@@ -368,7 +370,7 @@
           <root url="file:///Library/Frameworks/iTunesLibrary.framework/Headers" />
           <root url="file:///Library/Frameworks/WacomMultiTouch.framework/Headers" />
           <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include" />
-          <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/8.1.0/include" />
+          <root url="file:///Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include" />
         </SOURCES>
       </library>
     </orderEntry>
