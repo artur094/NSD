@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <ctime>
+#include <vector>
 
 #define TRUE 0
 #define FALSE 1
@@ -31,11 +32,32 @@ fstream input_graph;
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
 
+/*
+ * List of important functions that must be implemented
+ * Load data from a file
+ * Write data to a file
+ * Print data on the standart output
+ * Add edge to the graph
+ * Remove edge from the graph
+ * Add node to the graph
+ * Remove node from the graph
+ */
+
 int read_file(char* name);
-long get_number_nodes(fstream &file);
+void get_number_nodes(fstream &file, long &min_id, long &max_id);
 long get_number_edges(fstream &file);
 void set_degree_graph(fstream &file);
-void get_node_index(long node);
+long get_node_index(long node);
+int edge_exists(s_node* node, int neighbour);
+s_node* get_node(long node);
+int node_exists(int node);
+int add_edge(long node, long neighbour);
+int add_node(long node);
+int load_data(fstream &file);
+void initialize_graph(long length);
+void deinitialize_node(long node);
+int is_self_loop(int node, int neighbour);
+void print_graph();
 
 /* - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - */
 
@@ -48,6 +70,8 @@ int main(int argc, char** argv) {
         read_file(argv[1]);
     else
         read_file("graph3.txt");
+
+    print_graph();
 
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
@@ -78,11 +102,34 @@ int read_file(char* name){
     input_graph.clear();
     input_graph.seekg(0, input_graph.beg);
 
+    graph_degree = new long[number_nodes];
+    memset(graph_degree, 0, sizeof(long)*number_nodes);
+
+    set_degree_graph(input_graph);
+
+    //Set file pointer to the beginning of the file
+    input_graph.clear();
+    input_graph.seekg(0, input_graph.beg);
+
+    load_data(input_graph);
+
     input_graph.close();
 }
 
-int insert_data_from_file(fstream &file){
+int load_data(fstream &file){
+    long nodeA;
+    long nodeB;
 
+    while(file>>nodeA){
+        file>>nodeB;
+
+        add_node(nodeA);
+        add_node(nodeB);
+        add_edge(nodeA, nodeB);
+        add_edge(nodeB, nodeA);
+    }
+
+    return TRUE;
 }
 
 void get_number_nodes(fstream &file, long &min_id, long &max_id){
@@ -113,7 +160,7 @@ long get_number_edges(fstream &file){
     return count;
 }
 
-void set_degree_graph(fstream &file,long offset){
+void set_degree_graph(fstream &file){
     if(graph_degree == NULL)
         return;
 
@@ -122,8 +169,8 @@ void set_degree_graph(fstream &file,long offset){
 
     while(file>>nodeA){
         file>>nodeB;
-        graph_degree[nodeA - offset]++;
-        graph_degree[nodeB - offset]++;
+        graph_degree[get_node_index(nodeA)]++;
+        graph_degree[get_node_index(nodeB)]++;
     }
 }
 
@@ -133,8 +180,10 @@ int add_node(long node){
 
     s_node* new_node = new s_node();
     new_node->id = node;
+    new_node->length = 0;
+    //new_node->length = graph_degree[get_node_index(node)];
     //new_node->neighbours.resize(graph_degree[get_node_index(node)]);
-    graph.nodes.at(new_node);
+    graph.nodes.at(get_node_index(node)) = new_node;
 
     return TRUE;
 }
@@ -142,23 +191,28 @@ int add_node(long node){
 int add_edge(long node, long neighbour){
     s_node* tmp = get_node(node);
 
+    if(is_self_loop(node, neighbour) == TRUE)
+        return FALSE;
+
     if(edge_exists(tmp, neighbour) == TRUE)
         return FALSE;
 
     tmp->neighbours.push_back(neighbour);
+    tmp->length++;
+
 
     return TRUE;
 }
 
 int node_exists(int node){
-    if(graph.nodes.at(get_node_index(node)) != NULL)
+    if(graph.nodes.at(get_node_index(node)) == NULL)
         return FALSE;
     return TRUE;
 }
 
-int edge_exists(s_node node, int neighbour){
-    for(int i=0;i<node.length;i++)
-        if(node.neighbours.at(i) == neighbour)
+int edge_exists(s_node *node, int neighbour){
+    for(int i=0;i<node->length;i++)
+        if(node->neighbours.at(i) == neighbour)
             return TRUE;
 
     return FALSE;
@@ -184,12 +238,9 @@ void deinitialize_graph(){
 }
 
 void deinitialize_node(long node){
-    s_node tmp = graph.nodes.at(get_node_index(node));
+    s_node* tmp = graph.nodes.at(get_node_index(node));
 
-    for(int i=0;i<tmp.length;i++){
-        delete tmp.neighbours.at(i);
-        tmp.neighbours.at(i) = NULL;
-    }
+    tmp->neighbours.clear();
 
     delete tmp;
 }
@@ -200,6 +251,18 @@ long get_node_index(long node){
 
 s_node* get_node(long node){
     return graph.nodes.at(get_node_index(node));
+}
+
+void print_graph(){
+    cout << "Graph:"<<endl;
+    for(int i=0;i<graph.length;i++){
+        s_node* node = graph.nodes.at(i);
+        //cout << "Considering node "<<node->id<<endl;
+        for(int j=0;j<node->length;j++){
+            if(node->id < node->neighbours.at(j))
+                cout << node->id << " " << node->neighbours.at(j) << endl;
+        }
+    }
 }
 
 
