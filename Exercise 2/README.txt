@@ -27,3 +27,5 @@ Results:
 1 - With 1,224 nodes and 19,025 edges it required less than 1 second (Blogs)
 2 - With 382,219 nodes and 33,115,812 edges it required 17 seconds (Actor Collaborations)
 3 - With 68,349,466 nodes and 2,586,147,869 edges it returns wrong number of nodes (2,906,384 nodes), anyway it required 8 seconds (Friendster)
+
+All the results are obtained from a Macbook Pro mid 2014 with I7 (4 cores) 2,2GHz and 16GB of RAM (1600MHz DDR3)
