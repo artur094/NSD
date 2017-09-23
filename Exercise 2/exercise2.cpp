@@ -17,8 +17,6 @@ fstream input_graph;
 /* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
 
 int read_file(char* name);
-void get_number_nodes(fstream &file, long &min_id, long &max_id);
-long get_number_edges(fstream &file);
 void get_nodes_edges(fstream &file, long &min_id, long &max_id, long &edges);
 
 /* - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - */
@@ -40,8 +38,17 @@ int main(int argc, char** argv) {
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
 
+
+/**
+ * Read the file to get all the info required for the exercise
+ * @param name File name
+ * @return TRUE is function read the file correctly, FALSE otherwise
+ */
 int read_file(char* name){
     input_graph.open(name);
+
+    if(!input_graph)
+        return FALSE;
 
     //Get biggest ID number
     long max_id;
@@ -57,44 +64,20 @@ int read_file(char* name){
     cout<< "Supposed number of edges: "<<number_edges<<endl;
 
     input_graph.close();
+
+    return FALSE;
 }
 
 /**
- * It find the total number of nodes by searching the minimum and maximum ID in the file and it considers them as the first and the last one respectively
+ * Compute the number of nodes and number of edges
+ * To find the total number of nodes, the functions by searches the minimum and maximum ID in the file and it considers them as the first and the last one respectively
  * If nodes between min and max are not in any edges of the file, they are considered as nodes without any connections (single component)
+ * Sadly, to keep this simple and fast, it count also the copies of an edge
+ * @param file File to read data
+ * @param min_id
+ * @param max_id
+ * @param edges
  */
-void get_number_nodes(fstream &file, long &min_id, long &max_id){
-    long id;
-    max_id=0;
-    min_id=LONG_MAX;
-
-    //Find biggest and the smallest ID
-    //Then it consider the smallest one as the first node
-    //And the biggest one as the last one
-    //All nodes thar are not showed in the list are considered as a single node not connected
-    while(file>>id){
-        if(id>max_id)
-            max_id = id;
-        if(id<min_id)
-            min_id = id;
-    }
-}
-
-/**
- * It find the total number of edges in the file.
- * Sadly, to keep this simple and fast, it count also the copies of a single edge
- */
-long get_number_edges(fstream &file){
-    long count = 0;
-    long nodeA, nodeB;
-    // Count how many couples there are in the file
-    while(file>>nodeA){
-        file>>nodeB;
-        count++;
-    }
-    return count;
-}
-
 void get_nodes_edges(fstream &file, long &min_id, long &max_id, long &edges){
     long nodeA, nodeB;
     edges = 0;
@@ -103,10 +86,15 @@ void get_nodes_edges(fstream &file, long &min_id, long &max_id, long &edges){
     max_id = 0;
 
     // Count how many couples there are in the file
+    // And search the MIN and MAX ID of the nodes
     while(file>>nodeA){
         file>>nodeB;
-        edges++;
 
+        //If it is a self loop, then do not count it as link
+        if(nodeA != nodeB)
+            edges++;
+
+        //Check if the ID of the 2 nodes is a MIN or MAX
         nodeA < min_id ? min_id = nodeA : NULL;
         nodeB < min_id ? min_id = nodeB : NULL;
 

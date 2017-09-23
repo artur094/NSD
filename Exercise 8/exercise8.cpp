@@ -18,7 +18,7 @@ fstream input_graph;
 
 int read_file(char* name);
 void file_reset(fstream &file);
-void graph_degree_print(long offset);
+int graph_degree_write_file(char *name, long offset);
 void graph_degree_init(long length);
 void graph_degree_deinit();
 void get_number_nodes(fstream &file, long &min_id, long &max_id);
@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
     else
         read_file("../graph3.txt");
 
-    graph_degree_print(offset);
+    graph_degree_write_file("output.txt", offset);
 
     graph_degree_deinit();
 
@@ -47,41 +47,37 @@ int main(int argc, char** argv) {
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
 
-/**
- * Initialize the array for counting the node degrees with the given length
- * @param length Number of nodes
- */
 void graph_degree_init(long length){
     graph_degree = new long[length];
     memset(graph_degree, 0, sizeof(long)*length);
 }
 
-/**
- * Free the memory used by the array for counting the node degrees
- */
 void graph_degree_deinit(){
     delete[] graph_degree;
 }
 
-/**
- * Print the degree of each node
- * @param offset Offset to calculate the nodeID from the index
- */
-void graph_degree_print(long offset){
+int graph_degree_write_file(char *name, long offset){
     if(graph_degree == NULL)
-        return;
+        return FALSE;
+
+    fstream output;
+    output.open(name, ios::out);
+
+    if(!output) {
+        cerr << "Error while opening the output file"<<endl;
+        return FALSE;
+    }
 
     for(int i=0;i<number_nodes;i++){
         long node = i + offset;
-        cout << "Degree("<<node<<") = "<<graph_degree[i]<<endl;
+        output << graph_degree[i] << " " << node << endl;
     }
+
+    output.close();
+    return TRUE;
 }
 
-/**
- * Read the file and fill the array for the node degrees
- * @param name File name
- * @return TRUE if everything run correctly, FALSE otherwise
- */
+
 int read_file(char* name){
     input_graph.open(name);
 
@@ -130,11 +126,6 @@ void get_number_nodes(fstream &file, long &min_id, long &max_id){
     }
 }
 
-/**
- * Fill the array for the node degrees by reading the given file. It automatically set the file's pointer to the beginning of the file
- * @param file file stream
- * @param offset offset to obtain the index from the node ID
- */
 void set_degree_graph(fstream &file, long offset){
     if(graph_degree == NULL)
         return;
@@ -153,10 +144,6 @@ void set_degree_graph(fstream &file, long offset){
     }
 }
 
-/**
- * Reset file pointer to the beginning
- * @param file
- */
 void file_reset(fstream &file){
     file.clear();
     file.seekg(0, file.beg);

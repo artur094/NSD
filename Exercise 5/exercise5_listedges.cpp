@@ -18,12 +18,27 @@ fstream input_graph;
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
 
+/*
+ * List of important functions that must be implemented
+ * Load data from a file                (read_file)        DONE
+ * Write data to a file                 (write_file)       DONE
+ * Print data on the standart output    (print)            DONE
+ * Add edge to the graph
+ * Remove edge from the graph
+ * Add node to the graph
+ * Remove node from the graph
+ */
+
+
 int read_file(char* name);
+void write_file(char *file_name);
+void print();
+
+/* - - - - - - - - - - - - - - - - - AUXILIARY FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
+
+void add_edge(long nodeA, long nodeB);
 void get_number_nodes(fstream &file, long &min_id, long &max_id);
 void read_data(fstream &file);
-void write_data(char* file_name);
-void add_edge(long nodeA, long nodeB);
-void print();
 
 /* - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - */
 
@@ -39,7 +54,7 @@ int main(int argc, char** argv) {
 
     cout << "Edges inserted into the array" << endl;
 
-    print();
+    //print();
 
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
@@ -50,18 +65,6 @@ int main(int argc, char** argv) {
 
 int read_file(char* name){
     input_graph.open(name);
-
-    //Get biggest ID number
-    long max_id;
-    long min_id;
-    long number_nodes;
-    long number_edges;
-
-    get_number_nodes(input_graph, min_id, max_id);
-
-    //Set file pointer to the beginning of the file
-    input_graph.clear();
-    input_graph.seekg(0, input_graph.beg);
 
     read_data(input_graph);
 
@@ -75,19 +78,26 @@ void read_data(fstream &file){
     while(file>>nodeA){
         file>>nodeB;
 
-        edges.push_back(make_pair(nodeA, nodeB));
+        if(nodeA != nodeB)
+            edges.push_back(make_pair(nodeA, nodeB));
     }
 }
 
-void write_data(char* file_name){
+void write_file(char* file_name){
     fstream output_graph;
+
     long nodeA;
     long nodeB;
+    pair<long, long> edge;
+    vector<pair<long,long> >::iterator it;
 
     output_graph.open(file_name, ios::out);
     cout << file_name << " file opened"<<endl;
 
-    //TODO: finish write_data
+    for(it=edges.begin() ; it < edges.end(); it++ ) {
+        edge = *it;
+        output_graph << edge.first << " " << edge.second << endl;
+    }
 
     output_graph.close();
 

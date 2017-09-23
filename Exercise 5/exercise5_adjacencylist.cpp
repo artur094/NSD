@@ -34,30 +34,55 @@ fstream input_graph;
 
 /*
  * List of important functions that must be implemented
- * Load data from a file
+ * Load data from a file                    DONE
  * Write data to a file
- * Print data on the standart output
- * Add edge to the graph
+ * Print data on the standart output        DONE
+ * Add edge to the graph                    DONE
  * Remove edge from the graph
- * Add node to the graph
+ * Add node to the graph                    DONE
  * Remove node from the graph
+ * Initialize graph                         DONE
+ * Deinitialize graph                       DONE
  */
 
-int read_file(char* name);
-void get_number_nodes(fstream &file, long &min_id, long &max_id);
+/* - - - - - - - - - - - - - - - - - NEW FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
+
+void graph_init();
+void graph_deinit();
+int graph_load_file(char* name);
+int graph_add_edge(long node, long neighbour);
+int graph_add_node(long node);
+void graph_print();
+
+void node_init(long node);
+void node_deinit(long node);
+void node_add_edge(long neighbour);
+
+void degree_init(long length);
+void degree_deinit();
+
+
+/* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
+
+int load_file(char* name);
+int add_edge(long node, long neighbour);
+int add_node(long node);
+void initialize_graph();
+void deinitialize_node(long node);
+void print();
+
+/* - - - - - - - - - - - - - - - - - AUXILIARY FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
+
+void reset_file(fstream &file);
+long get_number_nodes(fstream &file, long &offset);
 long get_number_edges(fstream &file);
 void set_degree_graph(fstream &file);
 long get_node_index(long node);
 int edge_exists(s_node* node, int neighbour);
 s_node* get_node(long node);
 int node_exists(int node);
-int add_edge(long node, long neighbour);
-int add_node(long node);
 int load_data(fstream &file);
-void initialize_graph(long length);
-void deinitialize_node(long node);
 int is_self_loop(int node, int neighbour);
-void print_graph();
 
 /* - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - */
 
@@ -67,11 +92,11 @@ int main(int argc, char** argv) {
     long start = time(NULL);
 
     if(argc > 1)
-        read_file(argv[1]);
+        load_file(argv[1]);
     else
-        read_file("graph3.txt");
+        load_file("graph3.txt");
 
-    print_graph();
+    //print();
 
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
@@ -80,40 +105,34 @@ int main(int argc, char** argv) {
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
 
-int read_file(char* name){
+void reset_file(fstream &file){
+    input_graph.clear();
+    input_graph.seekg(0, input_graph.beg);
+}
+
+int load_file(char* name){
     input_graph.open(name);
 
-    //Get biggest ID number
-    long max_id;
-    long min_id;
-    long index_offset;
-    long number_nodes;
+    //Compute size of the graph and get the offset between the index for arrays and the ID of nodes
+    graph.length = get_number_nodes(input_graph, graph.offset);
 
-    get_number_nodes(input_graph, min_id, max_id);
+    //Initialize graph with the obtained size of the graph
+    initialize_graph();
 
-    number_nodes = max_id - min_id + 1;
-    index_offset = min_id;
+    //Reset file pointer
+    reset_file(input_graph);
 
-    graph.offset = index_offset;
-
-    initialize_graph(number_nodes);
-
-    //Set file pointer to the beginning of the file
-    input_graph.clear();
-    input_graph.seekg(0, input_graph.beg);
-
-    graph_degree = new long[number_nodes];
-    memset(graph_degree, 0, sizeof(long)*number_nodes);
-
+    //Compute degree of each node
     set_degree_graph(input_graph);
 
-    //Set file pointer to the beginning of the file
-    input_graph.clear();
-    input_graph.seekg(0, input_graph.beg);
+    //Reset file pointer
+    reset_file(input_graph);
 
+    //Load data onto the data structure
     load_data(input_graph);
 
     input_graph.close();
+    //TODO: deinit the degree array of the graph
 }
 
 int load_data(fstream &file){
@@ -123,6 +142,7 @@ int load_data(fstream &file){
     while(file>>nodeA){
         file>>nodeB;
 
+        //Not direct graph --> I have to add the edge to both nodes
         add_node(nodeA);
         add_node(nodeB);
         add_edge(nodeA, nodeB);
@@ -132,10 +152,10 @@ int load_data(fstream &file){
     return TRUE;
 }
 
-void get_number_nodes(fstream &file, long &min_id, long &max_id){
+long get_number_nodes(fstream &file, long &offset){
     long id;
-    max_id=0;
-    min_id=LONG_MAX;
+    long max_id=0;
+    long min_id=LONG_MAX;
 
     //Find biggest and the smallest ID
     //Then it consider the smallest one as the first node
@@ -147,6 +167,10 @@ void get_number_nodes(fstream &file, long &min_id, long &max_id){
         if(id<min_id)
             min_id = id;
     }
+
+    offset = min_id;
+
+    return (max_id - min_id + 1);
 }
 
 long get_number_edges(fstream &file){
@@ -161,8 +185,8 @@ long get_number_edges(fstream &file){
 }
 
 void set_degree_graph(fstream &file){
-    if(graph_degree == NULL)
-        return;
+    graph_degree = new long[graph.length];
+    memset(graph_degree, 0, sizeof(long)*graph.length);
 
     long nodeA;
     long nodeB;
@@ -222,10 +246,9 @@ int is_self_loop(int node, int neighbour){
     return node == neighbour ? TRUE: FALSE;
 }
 
-void initialize_graph(long length){
-    graph.length = length;
-    graph.nodes.resize(length);
-    for(int i=0;i<length;i++){
+void initialize_graph(){
+    graph.nodes.resize(graph.length);
+    for(int i=0;i<graph.length;i++){
         graph.nodes.at(i) = NULL;
     }
 }
@@ -253,7 +276,7 @@ s_node* get_node(long node){
     return graph.nodes.at(get_node_index(node));
 }
 
-void print_graph(){
+void print(){
     cout << "Graph:"<<endl;
     for(int i=0;i<graph.length;i++){
         s_node* node = graph.nodes.at(i);

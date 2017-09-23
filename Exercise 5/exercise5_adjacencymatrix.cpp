@@ -18,23 +18,28 @@ fstream input_graph;
 
 /*
  * List of important functions that must be implemented
- * Load data from a file
- * Write data to a file
- * Print data on the standart output
+ * Load data from a file                    DONE
+ * Write data to a file                     DONE
+ * Print data on the standart output        DONE
  * Add edge to the graph
  * Remove edge from the graph
  * Add node to the graph
  * Remove node from the graph
+ * Initialize graph                         DONE
+ * Deinitialize graph                       DONE
  */
 
 int read_file(char* name);
-void get_number_nodes(fstream &file, long &min_id, long &max_id);
-void read_data(fstream &file);
-void write_data(char* file_name);
+void write_file(char* file_name);
 void add_edge(long nodeA, long nodeB);
 void initialize_matrix();
 void deinitialize_matrix();
 void print();
+
+/* - - - - - - - - - - - - - - - - - AUXILIARY FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
+
+void get_number_nodes(fstream &file, long &min_id, long &max_id);
+void read_data(fstream &file);
 
 /* - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - */
 
@@ -50,7 +55,7 @@ int main(int argc, char** argv) {
 
     cout << "Data inserted into the matrix" << endl;
 
-    print();
+    //print();
 
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
@@ -95,7 +100,7 @@ void read_data(fstream &file){
     }
 }
 
-void write_data(char* file_name){
+void write_file(char* file_name){
     fstream output_graph;
     long nodeA;
     long nodeB;
