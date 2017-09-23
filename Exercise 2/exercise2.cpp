@@ -23,7 +23,7 @@ void get_nodes_edges(fstream &file, long &min_id, long &max_id, long &edges);
 
 int main(int argc, char** argv) {
 
-    cout << "NDS Course:" << endl;
+    cout << "NSD Course:" << endl;
     long start = time(NULL);
 
     if(argc > 1)

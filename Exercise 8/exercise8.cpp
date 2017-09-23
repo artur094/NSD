@@ -28,7 +28,7 @@ void set_degree_graph(fstream &file, long offset);
 
 int main(int argc, char** argv) {
 
-    cout << "NDS Course:" << endl;
+    cout << "NSD Course:" << endl;
     long start = time(NULL);
 
     if(argc > 1)

@@ -46,7 +46,7 @@ void file_reset(fstream &file);
 
 int main(int argc, char** argv) {
 
-    cout << "NDS Course:" << endl;
+    cout << "NSD Course:" << endl;
     long start = time(NULL);
 
     if(argc > 1)
