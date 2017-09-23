@@ -12,23 +12,10 @@ using namespace std;
 /* - - - - - - - - - - - - - - - - - VARIABLES - - - - - - - - - - - - - - - - - - - - */
 
 long array_length;
-//long array_offset;
 vector<pair<long,long> > edges;
 fstream input_graph;
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
-
-/*
- * List of important functions that must be implemented
- * Load data from a file                (read_file)        DONE
- * Write data to a file                 (write_file)       DONE
- * Print data on the standart output    (print)            DONE
- * Add edge to the graph
- * Remove edge from the graph
- * Add node to the graph
- * Remove node from the graph
- */
-
 
 int read_file(char* name);
 void write_file(char *file_name);
@@ -63,14 +50,28 @@ int main(int argc, char** argv) {
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
 
+/**
+ * Open file and load data into the array
+ * @param name
+ * @return
+ */
 int read_file(char* name){
     input_graph.open(name);
+
+    if(!input_graph)
+        return FALSE;
 
     read_data(input_graph);
 
     input_graph.close();
+
+    return TRUE;
 }
 
+/**
+ * Load data into the array
+ * @param file file stream
+ */
 void read_data(fstream &file){
     long nodeA;
     long nodeB;
@@ -83,6 +84,10 @@ void read_data(fstream &file){
     }
 }
 
+/**
+ * Write data contained in the array to the file
+ * @param file_name
+ */
 void write_file(char* file_name){
     fstream output_graph;
 
@@ -125,6 +130,9 @@ void get_number_nodes(fstream &file, long &min_id, long &max_id){
     }
 }
 
+/**
+ * Print edges in the array
+ */
 void print(){
     long nodeA;
     long nodeB;

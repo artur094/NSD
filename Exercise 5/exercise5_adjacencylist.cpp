@@ -30,22 +30,7 @@ long *graph_degree = NULL;
 s_graph graph;
 fstream input_graph;
 
-/* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
-
-/*
- * List of important functions that must be implemented
- * Load data from a file                    DONE
- * Write data to a file
- * Print data on the standart output        DONE
- * Add edge to the graph                    DONE
- * Remove edge from the graph
- * Add node to the graph                    DONE
- * Remove node from the graph
- * Initialize graph                         DONE
- * Deinitialize graph                       DONE
- */
-
-/* - - - - - - - - - - - - - - - - - NEW FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
+/* - - - - - - - - - - - - - - - - -  FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
 
 void graph_init();
 void graph_deinit();
@@ -83,6 +68,7 @@ s_node* get_node(long node);
 int node_exists(int node);
 int load_data(fstream &file);
 int is_self_loop(int node, int neighbour);
+void deinitialize_graph();
 
 /* - - - - - - - - - - - - - - - - - MAIN - - - - - - - - - - - - - - - - - - - - */
 
@@ -98,6 +84,8 @@ int main(int argc, char** argv) {
 
     //print();
 
+    deinitialize_graph();
+
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
     return 0;
@@ -112,6 +100,9 @@ void reset_file(fstream &file){
 
 int load_file(char* name){
     input_graph.open(name);
+
+    if(!input_graph)
+        return TRUE;
 
     //Compute size of the graph and get the offset between the index for arrays and the ID of nodes
     graph.length = get_number_nodes(input_graph, graph.offset);
@@ -132,7 +123,8 @@ int load_file(char* name){
     load_data(input_graph);
 
     input_graph.close();
-    //TODO: deinit the degree array of the graph
+
+    return TRUE;
 }
 
 int load_data(fstream &file){

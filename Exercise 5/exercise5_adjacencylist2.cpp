@@ -56,6 +56,8 @@ int main(int argc, char** argv) {
 
     //graph_print();
 
+    graph_deinit();
+
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
     return 0;
@@ -63,6 +65,12 @@ int main(int argc, char** argv) {
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
 
+/**
+ * Initialize the graph
+ * @param number_nodes
+ * @param number_edges
+ * @param offset
+ */
 void graph_init(long number_nodes, long number_edges, long offset){
     //Initialize arrays and variables
     graph.graph = new long[number_nodes];
@@ -80,6 +88,9 @@ void graph_init(long number_nodes, long number_edges, long offset){
     graph.number_nodes = number_nodes;
 }
 
+/**
+ * Free the memory used by the graph
+ */
 void graph_deinit(){
     //Free the memory used for arrays
     delete [] graph.graph;
@@ -97,6 +108,11 @@ void graph_deinit(){
     graph.number_nodes = 0;
 }
 
+/**
+ * Configure the graph and load data from file
+ * @param name file name
+ * @return
+ */
 int graph_load_file(char* name){
     fstream input;
 
@@ -126,6 +142,12 @@ int graph_load_file(char* name){
     return TRUE;
 }
 
+/**
+ * Add edge to the graph (in one directions A-->B, not B-->A)
+ * @param node
+ * @param neighbour
+ * @return
+ */
 int graph_add_edge(long node, long neighbour){
     //If arrays are not initialized or node is the same as the given neighbour, then stop the function
     if(graph.graph == NULL || graph.neighbours == NULL || node == neighbour)
@@ -159,6 +181,11 @@ int graph_add_edge(long node, long neighbour){
     return FALSE;
 }
 
+/**
+ * Compute the array with the degree of each node
+ * @param file
+ * @return
+ */
 int graph_compute_degree_array(fstream &file){
     //If array for the graph degree is not initialized, return FALSE
     if(graph.graph_degree == NULL)
@@ -182,6 +209,12 @@ int graph_compute_degree_array(fstream &file){
     return TRUE;
 }
 
+/**
+ * Compute the size of the graph by looking the ID of nodes and the number of rows (without considering self loops)
+ * It may count more edges, in this case some space will be allocated but not used
+ * @param file
+ * @return
+ */
 int graph_compute_size(fstream &file){
     if(!file)
         return FALSE;
@@ -216,6 +249,9 @@ int graph_compute_size(fstream &file){
     return TRUE;
 }
 
+/**
+ * Print the edges of the graph without duplicates or self loops
+ */
 void graph_print(){
     for(int i=0;i<graph.number_nodes;i++){
         long node = i+graph.offset;
@@ -231,6 +267,10 @@ void graph_print(){
 
 /* - - - - - - - - - - - - - - - - - AUXILIARY FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
 
+/**
+ * Configure the indexes of each node in order to get the first neighbour on the contiguous array
+ * @return
+ */
 int graph_set_nodes(){
     if(graph.graph == NULL || graph.neighbours == NULL || graph.graph_degree == NULL || graph.number_nodes<=0)
         return FALSE;
@@ -244,6 +284,11 @@ int graph_set_nodes(){
     return TRUE;
 }
 
+/**
+ * Convert the node ID to the correct index
+ * @param node
+ * @return
+ */
 long graph_get_index(long node){
     return (node-graph.offset);
 }
@@ -254,11 +299,20 @@ void swap(long &a, long &b){
     b = tmp;
 }
 
+/**
+ * Bring the file pointer to the beginning
+ * @param file
+ */
 void file_reset(fstream &file){
     file.clear();
     file.seekg(0, file.beg);
 }
 
+/**
+ * Load the whole file into the structure
+ * @param file
+ * @return
+ */
 int graph_load_data(fstream &file){
     file_reset(file);
 
