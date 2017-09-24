@@ -1,27 +1,29 @@
 Exercise 2 - Size of a graph
+
 The proposed solution is able to find the number of nodes by taking the minimum and maximum ID in the file.
-In this way, it works with both files starting from ID = 0 or ID = 1 (or even different).
-Then this solution consider every node between the minimum ID and maximum ID that are not in the file as a single component not connected with other nodes.
-Concerning with edges, it count how many edges are in the file (how many rows).
+In this way, it works with any file with IDs starting from 0, 1, or any other positive entire number.
+
+This solution considers every node between the minimum ID and maximum ID that are linked to other nodes within the file. 
+Regarding the edges, it counts them by obtaining the number of rows in the file.
 
 It is also possible to specify the file name as argument of the main:
     ./a.out <file_name>
 
-The programme has been tested with 3 different graphs and results are the same by the one provided on KONECT.
-The graphs that has been used are:
+The program has been tested with 3 different graphs and all the results obtained are the same as the one obtained from KONECT.
+
+The graphs used are:
 - Blogs with 1,224 nodes and 19,025 edges
 - Actor Collaborations with 382,219 nodes and 33,115,812 edges
 - Friendster with 68,349,466 nodes and 2,586,147,869 edges
 
 
-Drawback:
-1 - any node without edges with ID less than the minimum found on the file is not considered (otherwise it would be ambiguous to understand the ID of the first node)
-2 - since there is the limitation that it is not possible to load the graph onto the memory,
-    then it is difficult and time wasting to search for possible copies of the same link, therefore the programme will also count duplicates.
-    Therefore, there must be no duplicates in the graph file.
+Drawbacks:
+1 - any node without edges with smaller ID than the minimum found in the file is not considered.
+2 - since it is not possible to store the graph the memory, the program does not discard duplicated links. 
+Therefore, to properly count there must be no duplicates in the graph file.
 
 Requirements:
-1 - there must be no copies of the same link in the file, otherwise the number of edges will be higher
+1 - the file must contain ONLY non-duplicated links.
 
 Results:
 1 - With 1,224 nodes and 19,025 edges it required less than 1 second (Blogs)

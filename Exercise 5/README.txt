@@ -1,5 +1,6 @@
 Exercise 5 - Three Graph Data Structures
-There are 4 proposed solution:
+
+The proposed solutions for this exercise are:
 - List of Edges, called "exercise5_listedges.cpp"
 - Adjacency Matrix, called "exercise5_adjacencymatrix.cpp"
 - Adjacency List done with an array of arrays, called "exercise5_adjacencylist.cpp"
@@ -8,13 +9,15 @@ There are 4 proposed solution:
 It is also possible to specify the file name as argument of the main:
     ./a.out <file_name>
 
-The programme has been tested with 2 different graphs and results are the same by the one provided on KONECT.
-The graphs that has been used are:
+The program has been tested with 2 different graphs and all the results obtained are the same as the one obtained from KONECT.
+
+The graphs used are:
 - Blogs with 1,224 nodes and 19,025 edges
 - Actor Collaborations with 382,219 nodes and 33,115,812 edges
 
+
 Drawback:
-1 - If file contains more copies of the same link (duplicates), they will be added to the list of edges, causing waste of memory
+1 - If file contains duplicated links, they will be added to the list of edges - wasting memory.
 2 - It requires to count the number of nodes, initialize a matrix, load all data and then write it again. The complexity is O(m + m + n^2) (read the file to get number nodes ( O(m) ) + fill matrix ( O(m) ) and then iterate for the whole matrix ( O(n^2) )
 
 LIST OF EDGES

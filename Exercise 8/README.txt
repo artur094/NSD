@@ -1,13 +1,16 @@
 Exercise 8 - Degree Distribution
-The proposed programme uses the same methods of the exercise 3, but instead of writing on the standard output, it write the distribution on the file stream.
+The proposed program uses the same methods as in exercise 3. 
+In this case, instead of writing on the standard output, it writes the distribution on the file stream.
 
 It is also possible to specify the file name as argument of the main:
     ./a.out <file_name>
 
-The programme has been tested with 2 different graphs and results are the same by the one provided on KONECT.
-The graphs that has been used are:
+The program has been tested with 2 different graphs and all the results obtained are the same as the one obtained from KONECT.
+
+The graphs used are:
 - Blogs with 1,224 nodes and 19,025 edges
 - Actor Collaborations with 382,219 nodes and 33,115,812 edges
+
 
 Results
 1 - With 1,224 nodes and 19,025 edges it required less than 0 second (Blogs)
