@@ -28,8 +28,8 @@ It is really fast, since it just require to store the data of the file in the sa
 The Matrix is not scalable, since it has a lot of wasted space (where we don't have edges). Indeed, it is the only data structures which is killed by the kernel with code 9. All the other data structures worked fine.
 
 If calculating the theoretical RAM memory size for a 450MB graph (Actor Collaborations - 382,219 nodes), the matrix would require:
-    8 Bytes (long type) * 382219^2 (#nodes) = 1.168.730.911.688 Bytes
-    1.168.730.911.688 Bytes / 1024^3 = ~1089GB
+    4 Bytes (long type) * 382219^2 (#nodes) = 584.365.455.844 Bytes
+    584.365.455.844 Bytes / 1024^3 = ~545GB
 Therefore, matrix can handle only small graphs.
 
 With the Adjacency list (not contiguous), there is no waste of space like the matrix, therefore it can handle more space. In fact, it loaded the Actor Collaborations graph without problems.
