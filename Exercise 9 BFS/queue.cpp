@@ -8,6 +8,7 @@ Node* node_init(long val){
     Node* node = new Node();
     node->next = NULL;
     node->val = val;
+    return node;
 }
 
 void node_deinit(Node* node){
@@ -24,6 +25,21 @@ Queue* queue_init(){
 
 
 void queue_deinit(Queue* queue){
+    if(queue == NULL)
+        return;
+    if(queue->first == NULL)
+        return;
+
+    Node* node = queue->first;
+    Node* tmp;
+
+    while(node != NULL)
+    {
+        tmp = node;
+        node = node->next;
+        node_deinit(tmp);
+    }
+
     delete queue;
 }
 
@@ -45,6 +61,28 @@ Node* queue_pop(Queue* queue){
     }
 
     return node;
+}
+
+long queue_pop_val(Queue* queue){
+    if(queue == NULL)
+        return NULL;
+    if(queue->first == NULL)
+        return NULL;
+    if(queue->length <= 0)
+        return NULL;
+
+    Node* node = queue->first;
+    queue->first = node->next;
+    queue->length--;
+
+    if(queue->length == 0) {
+        queue->last = NULL;
+        queue->first = NULL;
+    }
+
+    long val = node->val;
+    node_deinit(node);
+    return val;
 }
 
 void queue_push(Queue* queue, Node* node){
@@ -98,3 +136,11 @@ void queue_print(Queue* queue){
     cout << endl;
 }
 
+bool queue_is_empty(Queue* queue){
+    if(queue == NULL)
+        return true;
+
+    if(queue->length == 0)
+        return true;
+    return false;
+}

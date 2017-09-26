@@ -19,23 +19,24 @@ struct Graph{
     long *graph_degree;
     long number_nodes;
     long number_edges;
+    long offset;
 };
 typedef struct Graph Graph;
 
 /* - - - - - - - - - - - - - - - - - FUNCTIONS DECLARATION - - - - - - - - - - - - - - - - - - - - */
 
-void graph_init(long number_nodes, long number_edges);
-void graph_deinit();
-int graph_load_file(char* name);
-void graph_print();
+Graph* graph_init(long number_nodes, long number_edges, long offset);
+void graph_deinit(Graph*);
+Graph* graph_load_file(char* name);
+void graph_print(Graph*);
 
 /* - - - - - - - - - - - - - - - - - AUXILIARY FUNCTIONS - - - - - - - - - - - - - - - - - - - - */
 
-int graph_compute_degree_array(fstream &file);
-int graph_compute_size(fstream &file);
-int graph_add_edge(long node, long neighbour);
-int graph_load_data(fstream &file);
-int graph_set_nodes();
+int graph_compute_degree_array(Graph*, fstream &file);
+int graph_compute_size(fstream &file, long &number_nodes, long &number_edges, long &offset);
+int graph_add_edge(Graph*, long node, long neighbour);
+int graph_load_data(Graph*, fstream &file);
+int graph_set_nodes(Graph*);
 
 void file_reset(fstream &file);
 
