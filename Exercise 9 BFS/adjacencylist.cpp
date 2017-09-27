@@ -105,8 +105,11 @@ int graph_add_edge(Graph* graph, long node, long neighbour){
     //Search the correct position of the given neighbour
     for(int i=first_neighbour;i<graph->graph_degree[index]+first_neighbour;i++){
         //If edge already exists, return FALSE (not added)
-        if(graph->neighbours[i] == neighbour)
+        if(graph->neighbours[i] == neighbour){
+            graph->graph_degree[node] -= 1; //Duplicate, then I reduce the degree
             return FALSE;
+        }
+
 
         //If empty spot, then assign the neighbour and stop the function
         if(graph->neighbours[i] < 0) {
@@ -248,8 +251,6 @@ void file_reset(fstream &file){
  */
 int graph_load_data(Graph* graph, fstream &file){
     file_reset(file);
-
-    cout << "Loading data with offset: "<<graph->offset<<endl;
 
     long nodeA;
     long nodeB;
