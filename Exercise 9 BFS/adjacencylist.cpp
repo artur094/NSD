@@ -175,8 +175,7 @@ int graph_compute_size(fstream &file, long &number_nodes, long &number_edges, lo
     long max_id = 0;
 
     // Count how many couples there are in the file
-    while(file>>nodeA){
-        file>>nodeB;
+    while(file>>nodeA>>nodeB){
 
         if(nodeA!=nodeB)
             number_edges+=2;

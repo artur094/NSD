@@ -43,27 +43,7 @@ void queue_deinit(Queue* queue){
     delete queue;
 }
 
-Node* queue_pop(Queue* queue){
-    if(queue == NULL)
-        return NULL;
-    if(queue->first == NULL)
-        return NULL;
-    if(queue->length <= 0)
-        return NULL;
-
-    Node* node = queue->first;
-    queue->first = node->next;
-    queue->length--;
-
-    if(queue->length == 0) {
-        queue->last = NULL;
-        queue->first = NULL;
-    }
-
-    return node;
-}
-
-long queue_pop_val(Queue* queue){
+long queue_pop(Queue* queue){
     if(queue == NULL)
         return NULL;
     if(queue->first == NULL)
@@ -85,9 +65,12 @@ long queue_pop_val(Queue* queue){
     return val;
 }
 
-void queue_push(Queue* queue, Node* node){
+void queue_push(Queue* queue, long nodeID){
     if(queue == NULL)
         return;
+
+    Node* node = node_init(nodeID);
+
     if(queue->length == 0){
         queue->first = node;
         queue->last = node;

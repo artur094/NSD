@@ -17,3 +17,4 @@ graph4.txt~
 CMakeLists.txt
 cmake-build-debug
 main.cpp
+tmp.cpp
