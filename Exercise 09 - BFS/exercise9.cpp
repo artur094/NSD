@@ -94,6 +94,11 @@ long diameter(Graph* graph){
     return diameter;
 }
 
+/**
+ * Return an array which contains the Connected Components ID of each node (in which connected component is the node)
+ * @param graph
+ * @return
+ */
 long* cc(Graph* graph){
     if(graph == NULL)
         return NULL;
