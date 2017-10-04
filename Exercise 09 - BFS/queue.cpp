@@ -23,7 +23,6 @@ Queue* queue_init(){
     return q;
 }
 
-
 void queue_deinit(Queue* queue){
     if(queue == NULL)
         return;
