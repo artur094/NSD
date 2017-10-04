@@ -134,18 +134,18 @@ long* BFS(Graph* graph, long root){
     memset(parents, -1, sizeof(long)*graph->number_nodes);
     memset(visited, false, sizeof(bool)*graph->number_nodes);
 
-    queue_push(queue, root);
+    queue_push(queue, node_init(root));
     visited[root] = true;
 
     while(! queue_is_empty(queue)){
 
-        long node = queue_pop(queue);
+        long node = queue_pop_val(queue);
 
         for (int i = 0; i < graph->graph_degree[node]; ++i) {
             long neighbour = graph->neighbours[graph->graph[node] + i];
 
             if(!visited[neighbour] && neighbour >= 0){
-                queue_push(queue, neighbour);
+                queue_push(queue, node_init(neighbour));
                 visited[neighbour] = true;
                 parents[neighbour] = node;
             }
@@ -171,19 +171,19 @@ void BFS_cc(Graph* graph, long root, long* ids, long id, long &ids_length){
 
     memset(visited, false, sizeof(bool)*graph->number_nodes);
 
-    queue_push(queue, root);
+    queue_push(queue, node_init(root));
     visited[root] = true;
     ids[root] = id;
     ids_length = 1;
 
     while(! queue_is_empty(queue)){
-        long node = queue_pop(queue);
+        long node = queue_pop_val(queue);
 
         for (int i = 0; i < graph->graph_degree[node]; ++i) {
             long neighbour = graph->neighbours[graph->graph[node] + i];
 
             if(!visited[neighbour] && neighbour >= 0){
-                queue_push(queue, neighbour);
+                queue_push(queue, node_init(neighbour));
                 visited[neighbour] = true;
                 ids[neighbour] = id;
                 ids_length++;
@@ -210,7 +210,7 @@ void BFS_cc_diameter(Graph* graph, long root, long* ids, long id, long &ids_leng
     memset(distance, 0, sizeof(long)*graph->number_nodes);
     memset(visited, false, sizeof(bool)*graph->number_nodes);
 
-    queue_push(queue, root);
+    queue_push(queue, node_init(root));
     visited[root] = true;
     ids[root] = id;
     ids_length = 1;
@@ -218,13 +218,13 @@ void BFS_cc_diameter(Graph* graph, long root, long* ids, long id, long &ids_leng
     max_distance = 0;
 
     while(! queue_is_empty(queue)){
-        long node = queue_pop(queue);
+        long node = queue_pop_val(queue);
 
         for (int i = 0; i < graph->graph_degree[node]; ++i) {
             long neighbour = graph->neighbours[graph->graph[node] + i];
 
             if(!visited[neighbour] && neighbour >= 0){
-                queue_push(queue, neighbour);
+                queue_push(queue, node_init(neighbour));
                 visited[neighbour] = true;
                 ids[neighbour] = id;
                 ids_length++;

@@ -24,11 +24,13 @@ Node* node_init(long val);
 void node_deinit(Node* node);
 Queue* queue_init();
 void queue_deinit(Queue* queue);
-long queue_pop(Queue* queue);
-void queue_push(Queue* queue, long node);
+Node* queue_pop(Queue* queue);
+void queue_push(Queue* queue, Node* node);
 long queue_first(Queue* queue);
 long queue_last(Queue* queue);
 void queue_print(Queue* queue);
 bool queue_is_empty(Queue* queue);
+
+long queue_pop_val(Queue* queue);
 
 #endif //NSD_QUEUE_H
