@@ -26,8 +26,6 @@ Queue* queue_init(){
 void queue_deinit(Queue* queue){
     if(queue == NULL)
         return;
-    if(queue->first == NULL)
-        return;
 
     Node* node = queue->first;
     Node* tmp;

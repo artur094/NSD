@@ -85,6 +85,7 @@ long diameter(Graph* graph){
                 max_size = size;
 
             id++;
+
         }
     }
 
@@ -159,6 +160,7 @@ long* BFS(Graph* graph, long root){
 
     queue_deinit(queue);
     delete[] visited;
+    delete[] parents;
 
     return parents;
 }
@@ -209,6 +211,7 @@ void BFS_cc_diameter(Graph* graph, long root, long* ids, long id, long &ids_leng
         return;
 
     Queue* queue = queue_init();
+
     bool* visited = new bool[graph->number_nodes];
     long* distance = new long[graph->number_nodes];
 
@@ -247,6 +250,8 @@ void BFS_cc_diameter(Graph* graph, long root, long* ids, long id, long &ids_leng
     }
 
     queue_deinit(queue);
+
     delete[] visited;
+    delete[] distance;
 }
 
