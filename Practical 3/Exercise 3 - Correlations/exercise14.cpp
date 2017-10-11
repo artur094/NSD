@@ -64,18 +64,23 @@ int main(int argc, char** argv) {
     save_pr_pr("pr02.dat", graph, P, P2);
     delete[](P2);
 
-    alpha = 0.1;
+    alpha = 0.5;
     cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
     P2 = page_rank(graph, alpha, iteration);
     save_pr_pr("pr05.dat", graph, P, P2);
     delete[](P2);
 
-    alpha = 0.1;
+    alpha = 0.9;
     cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
     P2 = page_rank(graph, alpha, iteration);
     save_pr_pr("pr09.dat", graph, P, P2);
     delete[](P2);
 
+    alpha = 1;
+    cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
+    P2 = page_rank(graph, alpha, iteration);
+    save_pr_pr("pr1.dat", graph, P, P2);
+    delete[](P2);
 
     long max_index = 0;
     long min_index = 0;

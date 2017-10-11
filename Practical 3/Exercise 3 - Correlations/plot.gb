@@ -81,3 +81,16 @@ set term png
 set output 'output_pr09.png'
 
 plot 'pr09.dat' using 1:2
+
+#PAGERANK 1
+
+set title 'Correlations'
+set ylabel 'PageRank 1'
+set xlabel 'PageRank 0.15'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'output_pr1.png'
+
+plot 'pr1.dat' using 1:2
