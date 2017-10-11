@@ -1,0 +1,83 @@
+set style line 1 lc rgb '#e6194b'   # --- blue
+set style line 2 lc rgb '#3cb44b'   # --- red
+set style line 3 lc rgb '#0082c8'   # --- blue
+set style line 4 lc rgb '#f58231'   # --- red
+
+
+#IN DEGREE
+
+set title 'Correlations'
+set ylabel 'Degree - In'
+set xlabel 'PageRank 0.15'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'output_in.png'
+
+plot 'indegree.dat' using 1:2
+
+#OUT DEGREE
+
+set title 'Correlations'
+set ylabel 'Degree - OUT'
+set xlabel 'PageRank 0.15'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'output_out.png'
+
+plot 'outdegree.dat' using 1:2
+
+#PAGERANK 0.1
+
+set title 'Correlations'
+set ylabel 'PageRank 0.1'
+set xlabel 'PageRank 0.15'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'output_pr01.png'
+
+plot 'pr01.dat' using 1:2
+
+#PAGERANK 0.2
+
+set title 'Correlations'
+set ylabel 'PageRank 0.2'
+set xlabel 'PageRank 0.15'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'output_pr02.png'
+
+plot 'pr02.dat' using 1:2
+
+#PAGERANK 0.5
+
+set title 'Correlations'
+set ylabel 'PageRank 0.5'
+set xlabel 'PageRank 0.15'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'output_pr05.png'
+
+plot 'pr05.dat' using 1:2
+
+#PAGERANK 0.9
+
+set title 'Correlations'
+set ylabel 'PageRank 0.9'
+set xlabel 'PageRank 0.15'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'output_pr09.png'
+
+plot 'pr09.dat' using 1:2

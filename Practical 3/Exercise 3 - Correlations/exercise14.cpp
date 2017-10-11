@@ -7,12 +7,13 @@
 
 using namespace std;
 
-void save_matrix(char* filename, Graph* graph, double** matrix, long* matrix_nodes, int nrows, int ncols);
-void print_matrix(Graph* graph, double** matrix, long* matrix_nodes, int nrows, int ncols);
+void save_pr_pr(char* filename, Graph* graph, double* P1, double* P2);
+void save_pr_outdegree(char* filename, Graph* graph, double* P);
+void save_pr_indegree(char* filename, Graph* graph, double* P);
 
 void print_array(double *P, int length);
 
-double* page_rank(Graph* graph, double alpha, int iterations, long* matrix_nodes, double** matrix_convergence, int matrix_length);
+double* page_rank(Graph* graph, double alpha, int iterations);
 void write_file(char* name,double* P,long length );
 void find_max_min(Graph *graph, double* P, long length, long &max_index, long &min_index);
 
@@ -44,20 +45,37 @@ int main(int argc, char** argv) {
 
     cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
 
-    int number_nodes = 12;
+    alpha = 0.15;
 
-    long matrix_nodes[] = {907722, 2421026, 4778009, 7196384, 10329063, 305, 6104545, 2031512, 6622645, 8285726, 3434750, 632};
+    double* P = page_rank(graph, alpha, iteration);
 
-    double** matrix_convergence = new double*[number_nodes];
+    save_pr_indegree("indegree.dat", graph, P);
+    save_pr_outdegree("outdegree.dat", graph, P);
 
-    for (int i = 0; i < number_nodes; ++i) {
-        matrix_convergence[i] = new double[iteration];
-        matrix_nodes[i] -= graph->offset;
-    }
+    alpha = 0.1;
+    cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
+    double* P2 = page_rank(graph, alpha, iteration);
+    save_pr_pr("pr01.dat", graph, P, P2);
+    delete[](P2);
 
-    double* P = page_rank(graph, alpha, iteration, matrix_nodes, matrix_convergence, number_nodes);
+    alpha = 0.2;
+    cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
+    P2 = page_rank(graph, alpha, iteration);
+    save_pr_pr("pr02.dat", graph, P, P2);
+    delete[](P2);
 
-    save_matrix("output.dat", graph, matrix_convergence, matrix_nodes, number_nodes, iteration);
+    alpha = 0.1;
+    cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
+    P2 = page_rank(graph, alpha, iteration);
+    save_pr_pr("pr05.dat", graph, P, P2);
+    delete[](P2);
+
+    alpha = 0.1;
+    cout<<"Starting page rank with alpha="<<alpha<<" and #iteration="<<iteration<<endl;
+    P2 = page_rank(graph, alpha, iteration);
+    save_pr_pr("pr09.dat", graph, P, P2);
+    delete[](P2);
+
 
     long max_index = 0;
     long min_index = 0;
@@ -80,7 +98,7 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-double* page_rank(Graph* graph, double alpha, int iterations, long* matrix_nodes, double** matrix_convergence, int matrix_length){
+double* page_rank(Graph* graph, double alpha, int iterations){
     double* P = new double[graph->number_nodes];
 
     double probability_come_from_neighbour = 0;
@@ -110,10 +128,6 @@ double* page_rank(Graph* graph, double alpha, int iterations, long* matrix_nodes
             }
             //cout << "P["<<i+graph->offset<<"] = (1 - " << alpha << " ) * " << probability_come_from_neighbour << " + " << alpha << " * " << probability_of_teletrasport << endl;
             P[i] = (1.0-alpha) * probability_come_from_neighbour + alpha * probability_of_teletrasport;
-        }
-
-        for (int l = 0; l < matrix_length; ++l) {
-            matrix_convergence[l][k] = P[matrix_nodes[l]];
         }
     }
     return P;
@@ -147,27 +161,37 @@ void find_max_min(Graph* graph, double* P, long length, long &max_index, long &m
     }
 }
 
-void print_matrix(Graph* graph, double** matrix, long* matrix_nodes, int nrows, int ncols){
-    for (int i = 0; i < nrows; ++i) {
-        cout << matrix_nodes[i] + graph->offset <<": ";
-        for (int j = 0; j < ncols; ++j) {
-            cout << matrix[i][j] << " ";
-        }
-        cout << endl;
-    }
-}
-
-void save_matrix(char* filename, Graph* graph, double** matrix, long* matrix_nodes, int nrows, int ncols){
+void save_pr_indegree(char* filename, Graph* graph, double* P){
     ofstream output;
     output.open(filename, ios::out);
 
-    for (int i = 0; i < ncols; ++i) {
-        //output << matrix_nodes[i] + graph->offset <<": ";
-        output << i+1 << " ";
-        for (int j = 0; j < nrows; ++j) {
-            output << matrix[j][i] << " ";
-        }
-        output << endl;
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        if(graph->graph_degree_in[i] > 0 || graph->graph_degree_out[i] > 0)
+            output << P[i] << " " << graph->graph_degree_in[i] << endl;
+    }
+
+    output.close();
+}
+
+void save_pr_outdegree(char* filename, Graph* graph, double* P){
+    ofstream output;
+    output.open(filename, ios::out);
+
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        if(graph->graph_degree_in[i] > 0 || graph->graph_degree_out[i] > 0)
+            output << P[i] << " " << graph->graph_degree_out[i] << endl;
+    }
+
+    output.close();
+}
+
+void save_pr_pr(char* filename, Graph* graph, double* P1, double* P2){
+    ofstream output;
+    output.open(filename, ios::out);
+
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        if(graph->graph_degree_in[i] > 0 || graph->graph_degree_out[i] > 0)
+            output << P1[i] << " " << P2[i] << endl;
     }
 
     output.close();
