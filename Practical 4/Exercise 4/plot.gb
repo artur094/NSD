@@ -9,11 +9,11 @@ set style line 4 lc rgb '#f58231'   # --- red
 set title 'Correlations'
 set ylabel 'Degree'
 set xlabel 'Node'
-set logscale y 10
+#set logscale y 10
 set logscale x 10
 
 set term png
-set output 'output.png'
+set output 'output_livejournal_nolog.png'
 
 plot 'degree.dat' using 1:2
 
@@ -26,6 +26,6 @@ set logscale y 10
 set logscale x 10
 
 set term png
-set output 'iterations.png'
+set output 'iterations_livejournal.png'
 
 plot 'iterations.dat' using 1:2

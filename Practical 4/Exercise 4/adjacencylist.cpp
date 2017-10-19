@@ -272,17 +272,32 @@ void graph_print(Graph* graph){
 }
 
 void graph_store_degree_file(char* filename, Graph* graph){
+    long max = 0;
+    long length;
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        long degree = graph->nodes[i].degree;
+
+        max = max < degree ? degree : max;
+    }
+    length = max+1;
+    long* degree = new long[length];
+    memset(degree, 0, (length)*sizeof(long));
+
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        degree[graph->nodes[i].degree]++;
+    }
+
     ofstream output;
     output.open(filename, ios::out);
 
-    for(int i=0;i<graph->number_nodes;i++){
-        Node node = graph->nodes[i];
-        //cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
-        output << node.id << " " << node.degree << endl;
+    for(int i=0;i<length;i++){
+        output << i << " " << degree[i] << endl;
     }
 
     output.close();
+    delete[] degree;
 }
+
 
 
 void graph_store_file(char* filename, Graph* graph){

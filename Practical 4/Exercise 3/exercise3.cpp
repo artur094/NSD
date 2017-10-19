@@ -25,7 +25,7 @@ int main(int argc, char** argv){
 
 
     cout << "NSD Course:" << endl;
-    cout << "Practical 4, Exercise 1" << endl << endl;
+    cout << "Practical 4, Exercise 3" << endl << endl;
 
     long start = time(NULL);
     long end = time(NULL);
@@ -128,7 +128,7 @@ Graph* build_configuration_graph(long* degree, long n, long m){
             swap(degree[u_index], degree[i-1]);
             swap(degree[v_index], degree[i-2]);
             i-=2;
-            cout << "i = " << i << endl;
+            //cout << "i = " << i << endl;
         }
     }
 

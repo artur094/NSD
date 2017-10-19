@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 
 
     cout << "NSD Course:" << endl;
-    cout << "Practical 4, Exercise 1" << endl << endl;
+    cout << "Practical 4, Exercise 4" << endl << endl;
 
     long start = time(NULL);
     long end = time(NULL);
@@ -36,9 +36,9 @@ int main(int argc, char** argv){
     long *edges;
     char* file_name = argv[1];
     
-    int iterations_step = 1000;
+    int iterations_step = 200000;
     int total_iterations = 0;
-    int cluster_array_length = 500;
+    int cluster_array_length = 5;
     double* cluster_array = new double[cluster_array_length];
     
 

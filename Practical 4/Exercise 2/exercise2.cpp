@@ -25,7 +25,7 @@ int main(int argc, char** argv){
 
 
     cout << "NSD Course:" << endl;
-    cout << "Practical 4, Exercise 1" << endl << endl;
+    cout << "Practical 4, Exercise 2" << endl << endl;
 
     long start = time(NULL);
     long end = time(NULL);

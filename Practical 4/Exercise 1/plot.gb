@@ -1,18 +1,18 @@
-set style line 1 lc rgb '#e6194b'   # --- blue
-set style line 2 lc rgb '#3cb44b'   # --- red
+set style line 1 lc rgb '#e6194b' pt 7  # --- blue
+set style line 2 lc rgb '#3cb44b' pt 7   # --- red
 set style line 3 lc rgb '#0082c8'   # --- blue
 set style line 4 lc rgb '#f58231'   # --- red
 
 
 #DEGREE
 
-set title 'Correlations'
-set ylabel 'Degree'
-set xlabel 'Node'
+set title 'Degree Distribution'
+set ylabel '#Nodes'
+set xlabel 'Degree'
 #set logscale y 10
-set logscale x 10
+#set logscale x 10
 
 set term png
 set output 'output.png'
 
-plot 'degree.dat' using 1:2
+plot 'degree.dat' using 1:2 with linespoint ls 1
