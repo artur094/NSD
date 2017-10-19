@@ -20,9 +20,14 @@ struct Heap{
 typedef struct Heap Heap;
 
 Heap* heap_init(Graph* graph);
+void heap_deinit(Heap* heap);
+void heap_restore(Heap* heap);
+void heap_print(Heap* heap);
+void heap_remove_node(Heap* heap, long node);
+bool heap_is_empty(Heap* heap);
+
 void heap_min_heap_restore(Heap* heap, long i);
 void heap_build(Heap* heap);
-void heap_print(Heap* heap);
 long left(long i);
 long right(long i);
 void swap_item(Item &a, Item &b);

@@ -13,6 +13,9 @@
 
 using namespace std;
 
+long* core_decomposition(Graph* graph);
+long max(long a, long b);
+
 int main(int argc, char** argv) {
     Graph* graph;
 
@@ -26,30 +29,48 @@ int main(int argc, char** argv) {
     else
         graph = graph_load_file("graph3.txt");
 
-    cout << "Initializing heap..."<<endl;
-    Heap* heap = heap_init(graph);
-
-    cout << "Building heap..."<<endl;
-    heap_build(heap);
-
-    cout << "Printing heap..."<<endl;
-    heap_print(heap);
-
-    long x = 5;
-    for (int i = graph->graph[x]; i < graph->graph[x] + graph->graph_degree[x]; ++i) {
-        long y = heap->node_indexes[graph->neighbours[i]];
-        heap->heap[y].degree--;
-    }
-
-    cout << "Building heap..."<<endl;
-    heap_build(heap);
-
-    cout << "Printing heap..."<<endl;
-    heap_print(heap);
+    cout << "Computing core decomposition..."<<endl;
+    core_decomposition(graph);
 
     graph_deinit(graph);
 
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
     return 0;
+}
+
+//TODO: non cancella bene i degree credo
+long* core_decomposition(Graph* graph){
+    Heap* heap = heap_init(graph);
+    heap_restore(heap);
+
+    long* cd = new long[graph->number_nodes];
+
+    long n = graph->number_nodes-1;
+    long c = 0;
+
+    while(! heap_is_empty(heap)){
+        long v = heap->heap[0].node;
+        //cout << "Removing " << v + heap->graph->offset << " ..." <<endl;
+        c = max(c, heap->heap[0].degree);
+
+        //heap_print(heap);
+        //cout << "After " << endl;
+
+        heap_remove_node(heap, v);
+        cd[v] = n;
+
+        //heap_print(heap);
+
+        cout << v+graph->offset << " with c= " << c << endl;
+        n--;
+    }
+
+    heap_deinit(heap);
+
+    return cd;
+}
+
+long max(long a, long b){
+    return a>b ? a : b;
 }

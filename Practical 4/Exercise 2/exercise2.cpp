@@ -76,12 +76,12 @@ int main(int argc, char** argv){
     cout<<"\tDone, required "<<(end-start)-diff<<" seconds. Total: "<<(end-start)<<endl;
     diff = end-start;
 
-    /*cout << "Storing graph in a file..."<<endl;
+    cout << "Storing graph in a file..."<<endl;
     graph_store_file("graph.txt", graph);
 
     end = time(NULL);
     cout<<"\tDone, required "<<(end-start)-diff<<" seconds. Total: "<<(end-start)<<endl;
-    diff = end-start;*/
+    diff = end-start;
 
     graph_deinit(graph);
 
