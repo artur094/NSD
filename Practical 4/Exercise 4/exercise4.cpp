@@ -36,9 +36,9 @@ int main(int argc, char** argv){
     long *edges;
     char* file_name = argv[1];
     
-    int iterations_step = 200000;
+    int iterations_step = 500000;
     int total_iterations = 0;
-    int cluster_array_length = 5;
+    int cluster_array_length = 10;
     double* cluster_array = new double[cluster_array_length];
     
 
