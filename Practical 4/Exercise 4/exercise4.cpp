@@ -37,7 +37,7 @@ int main(int argc, char** argv){
     char* file_name = argv[1];
     
     int iterations_step = 500000;
-    int total_iterations = 0;
+    int total_iterations = 5000000;
     int cluster_array_length = 10;
     double* cluster_array = new double[cluster_array_length];
     
