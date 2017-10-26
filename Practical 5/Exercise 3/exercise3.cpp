@@ -14,10 +14,14 @@
 
 using namespace std;
 
+double compute_degree_density(long n, long m);
+double compute_edge_density(long n, long m);
+
 void compute_densest_subgraph(double* scores, int iterations, long length);
-void iteratire_sort(Graph* graph, double* score, long* indexes, long length);
+void iterative_sort(Graph* graph, double* score, long* indexes, long length);
 long max(long a, long b);
 double* mkscore(Graph* graph, long iterations);
+long* densest_prefix(Graph* graph, long* indexes);
 
 int main(int argc, char** argv) {
     Graph* graph;
@@ -50,14 +54,50 @@ int main(int argc, char** argv) {
     //}
 
     cout << "Sorting scores..." << endl;
-    iteratire_sort(graph, score, indexes, graph->number_nodes);
+    iterative_sort(graph, score, indexes, graph->number_nodes);
 
     //for (int i = 0; i < graph->number_nodes; ++i) {
     //    cout << "Node " << i + graph->offset << " has score " << score[indexes[i]] << endl;
     //}
 
     cout << "Computing dense subgraph..." << endl << endl;
-    compute_densest_subgraph(score, iterations, graph->number_nodes);
+    long* dens_prefixs = densest_prefix(graph, indexes);
+    //compute_densest_subgraph(score, iterations, graph->number_nodes);
+
+    long max_densest_graph = 0;
+    double max_degree_density = 0.0;
+    double max_edge_density = 0.0;
+    double avg_degree_density = 0.0;
+    double avg_edge_density = 0.0;
+
+    cout << "Computing densities..." << endl;
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        long subgraph_nodes = i+1;
+        double degree_density =  compute_degree_density(subgraph_nodes, dens_prefixs[i]);
+        double edge_density = compute_edge_density(subgraph_nodes, dens_prefixs[i]);
+        //cout << "Dense subgraph of size = " << subgraph_nodes << " nodes" << endl;
+        //cout << "\t Degree Density = " << degree_density << endl;
+        //cout << "\t Edge Density = " << edge_density << endl;
+
+        avg_degree_density += degree_density;
+        avg_edge_density += edge_density;
+
+        if(max_degree_density < degree_density){
+            max_degree_density = degree_density;
+            max_densest_graph = i;
+            max_edge_density = edge_density;
+        }
+    }
+
+    avg_degree_density /= graph->number_nodes;
+    avg_edge_density /= graph->number_nodes;
+
+    cout << endl;
+    cout << "Maximum size = " << max_densest_graph+1 << endl;
+    cout << "\twith degree density = " << max_degree_density << endl;
+    cout << "\twith edge density = " << max_edge_density << endl;
+    cout << "Avg degree density = " << avg_degree_density << endl;
+    cout << "Avg edge density = " << avg_edge_density << endl;
 
     graph_deinit(graph);
 
@@ -94,39 +134,60 @@ long max(long a, long b){
 }
 
 //TODO: change to O(n * logn)
-void iteratire_sort(Graph* graph, double* score, long* indexes, long length){
-    long max;
+void iterative_sort(Graph* graph, double* score, long* indexes, long length){
+    Heap* heap;
+    //cout << "Initializing..." << endl;
+    heap = heap_init(graph, score);
+    //cout << "Sorting..." << endl;
+    heap_sort(heap);
 
-    long* tmp_indexes = new long[graph->number_nodes];
-    for (int i = 0; i < graph->number_nodes; ++i) {
-        tmp_indexes[i] = i;
+    //cout << "Copying..." << endl;
+    //cout << "Heap length = " << heap->length << endl;
+    for (int i = 0; i < graph->number_nodes ; ++i) {
+        //cout << "Node " << heap->heap[i].node + graph->offset << " with score = " << heap->heap[i].score  << endl;
+        score[i] = heap->heap[i].score;
+        indexes[heap->heap[i].node] = i;
     }
 
-    for (int i = 0; i < length; ++i) {
-        max = i;
-        for (int j = i+1; j < length; ++j) {
-            if(score[max] < score[j]){
-                max = j;
+    heap_deinit(heap);
+}
+
+long* densest_prefix(Graph* graph, long* indexes){
+    long* distributed = new long[graph->number_nodes];
+    long* cumulative = new long[graph->number_nodes];
+
+    memset(distributed, 0, sizeof(long)*graph->number_nodes);
+    memset(cumulative, 0, sizeof(long)*graph->number_nodes);
+
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        for (int j = 0; j < graph->graph_degree[i]; ++j) {
+            long neighbour = graph->neighbours[graph->graph[i] + j];
+
+            if(i < neighbour){
+                //cout << "Studying "<<i+graph->offset<<" adding neighbour " << neighbour+graph->offset << " in position " << core_decomposition[neighbour] << " ";
+
+                if(indexes[i] < indexes[neighbour]){
+                    distributed[indexes[neighbour]]++;
+                }else{
+                    distributed[indexes[i]]++;
+                }
+
+                // cout << "distributed = " << distributed[core_decomposition[neighbour]] << endl;
             }
         }
-
-        if(max != i){
-            double tmp = score[i];
-            score[i] = score[max];
-            score[max] = tmp;
-
-            long tmp_index = tmp_indexes[i];
-            tmp_indexes[i] = tmp_indexes[max];
-            tmp_indexes[max] = tmp_index;
-        }
     }
 
-    for (int i = 0; i < graph->number_nodes; ++i) {
-        indexes[tmp_indexes[i]] = i;
+    //cout << "0 0" << endl;
+    for (int i = 1; i < graph->number_nodes; ++i) {
+        //cout << i << " " << distributed[i] << endl;
+        cumulative[i] = cumulative[i-1] + distributed[i];
     }
 
-    delete [](tmp_indexes);
+    delete[](distributed);
+
+    return cumulative;
 }
+
 
 void compute_densest_subgraph(double* scores, int iterations, long length){
     long count = 0;
@@ -201,3 +262,12 @@ void compute_densest_subgraph(double* scores, int iterations, long length){
 
 }
 
+double compute_degree_density(long n, long m){
+    return (double)m/(double)n;
+}
+
+double compute_edge_density(long n, long m){
+    if(n > 1)
+        return (2.0 * (double) m) / (n * (n-1));
+    return 0.0;
+}

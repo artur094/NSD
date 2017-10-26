@@ -7,7 +7,7 @@
 
 struct Item{
     long node;
-    double score;
+    long degree;
 };
 typedef struct Item Item;
 
@@ -19,15 +19,14 @@ struct Heap{
 };
 typedef struct Heap Heap;
 
-Heap* heap_init(Graph* graph, double* score);
+Heap* heap_init(Graph* graph);
 void heap_deinit(Heap* heap);
 void heap_restore(Heap* heap);
 void heap_print(Heap* heap);
 void heap_remove_node(Heap* heap, long node);
 bool heap_is_empty(Heap* heap);
-void heap_sort(Heap* heap);
 
-void heap_min_heap_restore(Heap* heap, long i, long length);
+void heap_min_heap_restore(Heap* heap, long i);
 void heap_build(Heap* heap);
 long left(long i);
 long right(long i);

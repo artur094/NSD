@@ -16,8 +16,8 @@ using namespace std;
 double compute_degree_density(long n, long m);
 double compute_edge_density(long n, long m);
 
-
-long* core_decomposition(Graph* graph);
+void store_file(char* filename, long** data, long length);
+long* core_decomposition(Graph* graph, long** data);
 long* densest_prefix(Graph* graph, long* core_decomposition);
 long max(long a, long b);
 
@@ -40,7 +40,11 @@ int main(int argc, char** argv) {
         graph = graph_load_file("graph3.txt");
 
     cout << "Computing core decomposition..."<<endl;
-    long *core_dec = core_decomposition(graph);
+    long** data = new long*[graph->number_nodes];
+    for (int j = 0; j < graph->number_nodes; ++j) {
+        data[j] = new long[3];
+    }
+    long *core_dec = core_decomposition(graph, data);
     cout << "Computing prefix..." << endl;
     long *dens_prefixs = densest_prefix(graph, core_dec);
 
@@ -79,10 +83,14 @@ int main(int argc, char** argv) {
     cout << "Avg degree density = " << avg_degree_density << endl;
     cout << "Avg edge density = " << avg_edge_density << endl;
 
-    graph_deinit(graph);
+    cout << "Storing file..." << endl;
+    store_file("output.dat", data, graph->number_nodes);
 
     long end = time(NULL);
     cout<<"\nTime required: "<<end-start<<" seconds"<<endl;
+
+    graph_deinit(graph);
+
     return 0;
 }
 
@@ -96,7 +104,7 @@ double compute_edge_density(long n, long m){
     return 0.0;
 }
 
-long* core_decomposition(Graph* graph){
+long* core_decomposition(Graph* graph, long** data){
     Heap* heap = heap_init(graph);
     heap_restore(heap);
 
@@ -104,14 +112,24 @@ long* core_decomposition(Graph* graph){
 
     long n = graph->number_nodes-1;
     long c = 0;
+    long index = 0;
 
     while(! heap_is_empty(heap)){
+        if(n % 100 == 0)
+            cout << n << endl;
         long v = heap->heap[0].node;
         //cout << "Removing " << v + heap->graph->offset << " ..." <<endl;
         c = max(c, heap->heap[0].degree);
 
         //heap_print(heap);
         //cout << "After " << endl;
+
+        data[index][0] = graph->graph_degree[v];
+        data[index][1] = c;
+        data[index][2] = v;
+        index++;
+
+
 
         heap_remove_node(heap, v);
         cd[v] = n;
@@ -167,4 +185,15 @@ long max(long a, long b){
     return a>b ? a : b;
 }
 
+
+void store_file(char* filename, long** data, long length){
+    fstream output;
+    output.open(filename, ios::out);
+
+    for (int i = 0; i < length; ++i) {
+        output << data[i][0] << " " << data[i][1] << " " << data[i][2] << endl;
+    }
+
+    output.close();
+}
 

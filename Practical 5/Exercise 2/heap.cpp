@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Heap* heap_init(Graph* graph, double* score){
+Heap* heap_init(Graph* graph){
     Heap* heap = new Heap();
     heap->heap = new Item[graph->number_nodes];
     heap->node_indexes = new long[graph->number_nodes];
@@ -16,7 +16,7 @@ Heap* heap_init(Graph* graph, double* score){
 
     for (int i = 0; i < graph->number_nodes; ++i) {
         heap->heap[i].node = i;
-        heap->heap[i].score = score[i];
+        heap->heap[i].degree = graph->graph_degree[i];
         heap->node_indexes[i] = i;
     }
 
@@ -63,7 +63,7 @@ void heap_remove_node(Heap* heap, long node){
         long neighbour = heap->graph->neighbours[heap->graph->graph[node] + i];
         long index_neighbour = heap->node_indexes[neighbour];
 
-        heap->heap[index_neighbour].score--;
+        heap->heap[index_neighbour].degree--;
     }
 
     heap_restore(heap);
@@ -73,17 +73,17 @@ bool heap_is_empty(Heap* heap){
     return heap->length == 0;
 }
 
-void heap_min_heap_restore(Heap* heap, long i, long length){
+void heap_min_heap_restore(Heap* heap, long i){
     long min = i;
     bool cont = true;
 
     while (cont){
         cont = false;
 
-        if(left(i) < length && heap->heap[left(i)].score < heap->heap[min].score)
+        if(left(i) < heap->length && heap->heap[left(i)].degree < heap->heap[min].degree)
             min = left(i);
 
-        if(right(i) < length && heap->heap[right(i)].score < heap->heap[min].score)
+        if(right(i) < heap->length && heap->heap[right(i)].degree < heap->heap[min].degree)
             min = right(i);
 
         if(i != min){
@@ -100,29 +100,15 @@ void heap_min_heap_restore(Heap* heap, long i, long length){
 
 void heap_build(Heap* heap){
     for (int i = heap->length/2; i >= 0; --i) {
-        heap_min_heap_restore(heap, i, heap->length);
+        heap_min_heap_restore(heap, i);
     }
 }
 
 void heap_print(Heap* heap){
     for (int i = 0; i < heap->length; ++i) {
-        cout << heap->heap[i].node + heap->graph->offset << " degree " << heap->heap[i].score
+        cout << heap->heap[i].node + heap->graph->offset << " degree " << heap->heap[i].degree
              << " in pos " << heap->node_indexes[heap->heap[i].node] << " --> ID in that pos = " << heap->heap[heap->node_indexes[heap->heap[i].node]].node+ heap->graph->offset << endl;
     }
-}
-
-void heap_sort(Heap* heap){
-    //cout << "Building..." << endl;
-    heap_build(heap);
-
-    for (int i = heap->length - 1; i > 0; --i) {
-        heap->node_indexes[heap->heap[i].node] = 0;
-        heap->node_indexes[heap->heap[0].node] = i;
-        swap_item(heap->heap[0], heap->heap[i]);
-
-        heap_min_heap_restore(heap, 0, i);
-    }
-
 }
 
 long left(long i){
