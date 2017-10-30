@@ -107,6 +107,8 @@ long* core_decomposition(Graph* graph){
 
     while(! heap_is_empty(heap)){
         long v = heap->heap[0].node;
+        //if(n % 100 == 0)
+        //   cout << n << endl;
         //cout << "Removing " << v + heap->graph->offset << " ..." <<endl;
         c = max(c, heap->heap[0].degree);
 

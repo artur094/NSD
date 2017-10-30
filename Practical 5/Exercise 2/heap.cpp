@@ -51,6 +51,12 @@ void heap_remove_node(Heap* heap, long node){
     heap->node_indexes[node] = heap->length-1;
     heap->length--;
 
+    //cout << "After removing node: " << endl;
+    //heap_print(heap);
+    //cout << endl << "After restore: " << endl;
+
+    heap_min_heap_restore(heap, 0);
+    //heap_print(heap);
     /*
     for (int i = 0; i < heap->graph->graph_degree[node]; ++i) {
         long neighbour = heap->graph->neighbours[heap->graph->graph[node] + i];
@@ -63,14 +69,47 @@ void heap_remove_node(Heap* heap, long node){
         long neighbour = heap->graph->neighbours[heap->graph->graph[node] + i];
         long index_neighbour = heap->node_indexes[neighbour];
 
-        heap->heap[index_neighbour].degree--;
+        if(index_neighbour < heap->length){
+            heap->heap[index_neighbour].degree--;
+
+            //cout << "After reducing degree of neighbour: "<< neighbour <<endl;
+            //heap_print(heap);
+            //cout << endl << "After restoring bottom-up the heap:"<<endl;
+            heap_min_heap_restore_2(heap, index_neighbour);
+            //heap_print(heap);
+        }
     }
 
-    heap_restore(heap);
+    //heap_restore(heap);
 }
 
 bool heap_is_empty(Heap* heap){
     return heap->length == 0;
+}
+
+//Fix heap from bottom to top
+void heap_min_heap_restore_2(Heap* heap, long i){
+    long min = i;
+    long p;
+    bool cont = true;
+
+    while (cont){
+        if(i==0)
+            return;
+
+        cont = false;
+        p = father(i);
+
+        if(heap->heap[i].degree < heap->heap[p].degree && i > 0){
+            heap->node_indexes[heap->heap[i].node] = p;
+            heap->node_indexes[heap->heap[p].node] = i;
+            //swap_long(heap->node_indexes[i], heap->node_indexes[min]);
+            swap_item(heap->heap[i], heap->heap[p]);
+
+            i = p;
+            cont = true;
+        }
+    }
 }
 
 void heap_min_heap_restore(Heap* heap, long i){
@@ -111,12 +150,18 @@ void heap_print(Heap* heap){
     }
 }
 
+long father(long i){
+    return (i-1)/2;
+}
+
 long left(long i){
-    return 2*i;
+    return 2*i + 1;
+    //return 2*i;
 }
 
 long right(long i){
-    return 2*i+1;
+    return 2*i+2;
+    //return 2*i+1;
 }
 
 void swap_item(Item &a, Item &b){

@@ -27,9 +27,12 @@ void heap_remove_node(Heap* heap, long node);
 bool heap_is_empty(Heap* heap);
 
 void heap_min_heap_restore(Heap* heap, long i);
+void heap_min_heap_restore_2(Heap* heap, long i);
+
 void heap_build(Heap* heap);
 long left(long i);
 long right(long i);
+long father(long i);
 void swap_item(Item &a, Item &b);
 void swap_long(long &a, long &b);
 
