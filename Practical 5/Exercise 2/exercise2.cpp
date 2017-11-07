@@ -129,8 +129,6 @@ long* core_decomposition(Graph* graph, long** data){
         data[index][2] = v;
         index++;
 
-
-
         heap_remove_node(heap, v);
         cd[v] = n;
 

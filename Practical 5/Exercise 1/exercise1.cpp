@@ -17,7 +17,7 @@ double compute_degree_density(long n, long m);
 double compute_edge_density(long n, long m);
 
 
-long* core_decomposition(Graph* graph);
+long* core_decomposition(Graph* graph, long *core_values);
 long* densest_prefix(Graph* graph, long* core_decomposition);
 long max(long a, long b);
 
@@ -39,8 +39,10 @@ int main(int argc, char** argv) {
     else
         graph = graph_load_file("graph3.txt");
 
+    long* core_values = new long[graph->number_nodes];
+
     cout << "Computing core decomposition..."<<endl;
-    long *core_dec = core_decomposition(graph);
+    long *core_dec = core_decomposition(graph, core_values);
     cout << "Computing prefix..." << endl;
     long *dens_prefixs = densest_prefix(graph, core_dec);
 
@@ -49,6 +51,8 @@ int main(int argc, char** argv) {
     double max_edge_density = 0.0;
     double avg_degree_density = 0.0;
     double avg_edge_density = 0.0;
+    double max_core_avg = 0.0;
+    double core_avg = 0.0;
 
     cout << "Computing densities..." << endl;
     for (int i = 0; i < graph->number_nodes; ++i) {
@@ -61,11 +65,13 @@ int main(int argc, char** argv) {
 
         avg_degree_density += degree_density;
         avg_edge_density += edge_density;
+        core_avg += core_values[i];
 
         if(max_degree_density < degree_density){
             max_degree_density = degree_density;
             max_densest_graph = i;
             max_edge_density = edge_density;
+            max_core_avg = core_avg / (double)(i+1);
         }
     }
 
@@ -78,6 +84,7 @@ int main(int argc, char** argv) {
     cout << "\twith edge density = " << max_edge_density << endl;
     cout << "Avg degree density = " << avg_degree_density << endl;
     cout << "Avg edge density = " << avg_edge_density << endl;
+    cout << "Core Value = " << max_core_avg << endl;
 
     graph_deinit(graph);
 
@@ -96,9 +103,11 @@ double compute_edge_density(long n, long m){
     return 0.0;
 }
 
-long* core_decomposition(Graph* graph){
+long* core_decomposition(Graph* graph, long *core_values){
     Heap* heap = heap_init(graph);
     heap_restore(heap);
+
+    heap_print(heap);
 
     long* cd = new long[graph->number_nodes];
 
@@ -115,6 +124,7 @@ long* core_decomposition(Graph* graph){
         //heap_print(heap);
         //cout << "After " << endl;
 
+        core_values[n] = c;
         heap_remove_node(heap, v);
         cd[v] = n;
 
