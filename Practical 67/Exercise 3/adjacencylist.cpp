@@ -25,6 +25,7 @@ Graph* graph_init(long number_nodes, long offset){
         graph->nodes[i].degree = 0;
         graph->nodes[i].number_triangles = 0;
         graph->nodes[i].community = community_init();
+        //cout << "insert " << i << " in comm" << endl;
         community_insert(graph->nodes[i].community, i);
     }
 
@@ -195,19 +196,24 @@ bool graph_load_data(Graph* graph, Edgelist* edgelist){
 
 bool graph_add_edge(Graph* graph, long node, long neighbour, long weight){
 
+    //cout << "[GR-ADD-EDGE]: Adding " << node << " - " << neighbour << " with weight=" << weight << endl;
+    //cout << "[GR-ADD-EDGE]: Neighbors of " << node << ": ";
+    //graph_print_array(graph, node);
     //Do not add if selp loop or existing edge
     if(graph_is_self_loop(node, neighbour)) {
         //graph->nodes[node].degree--;
+        //cout << "[GR-ADD-EDGE]: The link " << node << " " << neighbour << " is a self loop" << endl << endl;
         return false;
     }
 
 
     if(graph_contains_edge(graph, node, neighbour)){
+        //cout << "[GR-ADD-EDGE]: The link " << node << " " << neighbour << " is already existing" << endl << endl;
         //graph->nodes[node].degree--;
         return false;
     }
 
-    //cout << "Adding "<<neighbour<<" to "<<node<<endl;
+    ////cout << "Adding "<<neighbour<<" to "<<node<<endl;
     int i=0;
     //TODO: change using binary search
     for (i = 0; i < graph->nodes[node].degree && graph->nodes[node].neighbours[i] <= neighbour; ++i);
@@ -216,6 +222,11 @@ bool graph_add_edge(Graph* graph, long node, long neighbour, long weight){
     graph->nodes[node].weight.insert(graph->nodes[node].weight.begin()+i, weight);
     graph->nodes[node].degree++;
     graph->number_edges++;
+
+    //cout << "[GR-ADD-EDGE]: Added " << node << " - " << neighbour << " with weight=" << weight << endl;
+    //cout << "[GR-ADD-EDGE]: New neighbours of " << node << ": ";
+    //graph_print_array(graph, node);
+    //cout << endl;
 
     return true;
 }
@@ -230,7 +241,7 @@ bool graph_contains_edge(Graph* graph, long src, long dst){
     long end = graph->nodes[src].degree - 1;
     long m;
 
-    while (start < end){
+    while (start <= end){
         m = (start+end) / 2;
 
         if(graph->nodes[src].neighbours[m] == dst)
@@ -251,51 +262,51 @@ bool graph_contains_edge(Graph* graph, long src, long dst){
 }
 
 long graph_get_edge(Graph* graph, long src, long dst){
-    //cout << "[GRGETEDGE]: Prechecks" << endl;
+    ////cout << "[GRGETEDGE]: Prechecks" << endl;
     if(graph == NULL)
         return NULL;
 
-    cout << "[GRGETEDGE]: Node " << src << " with neighbor " << dst << endl;
-    //cout << "[GRGETEDGE]: Neighbors = ";
+    //cout << "[GRGETEDGE]: Node " << src << " with neighbor " << dst << endl;
+    ////cout << "[GRGETEDGE]: Neighbors = ";
     //graph_print_array(graph, src);
 
 
-    //cout << "[GRGETEDGE]: Defining variables" << endl;
+    ////cout << "[GRGETEDGE]: Defining variables" << endl;
     long start = 0;
     long end = graph->nodes[src].degree - 1;
     long m;
 
-    //cout << "[GRGETEDGE]: Iterate..." << endl;
+    ////cout << "[GRGETEDGE]: Iterate..." << endl;
     while (start <= end){
-        //cout << "[GRGETEDGE]: Start = " << start << " | End = " << end << endl;
+        ////cout << "[GRGETEDGE]: Start = " << start << " | End = " << end << endl;
         m = (start+end) / 2;
-        //cout << "[GRGETEDGE]: m="<< graph->neighbours[m] << endl;
+        ////cout << "[GRGETEDGE]: m="<< graph->neighbours[m] << endl;
 
-        //cout << "[GRGETEDGE]: Check if neighbor is on the left or right" << endl;
-        //cout << "[GRGETEDGE]: " << graph->neighbours[m] << " < " << dst << endl;
+        ////cout << "[GRGETEDGE]: Check if neighbor is on the left or right" << endl;
+        ////cout << "[GRGETEDGE]: " << graph->neighbours[m] << " < " << dst << endl;
         if(graph->nodes[src].neighbours[m] == dst) {
-            cout << "[GRGETEDGE]: Return " << m << endl;
+            //cout << "[GRGETEDGE]: Return " << m << endl;
             return m;
         }
         else if(graph->nodes[src].neighbours[start] == dst){
-            cout << "[GRGETEDGE]: Return " << start << endl;
+            //cout << "[GRGETEDGE]: Return " << start << endl;
             return start;
         }
         else if(graph->nodes[src].neighbours[end] == dst){
-            cout << "[GRGETEDGE]: Return " << end << endl;
+            //cout << "[GRGETEDGE]: Return " << end << endl;
             return end;
         }
         else if(graph->nodes[src].neighbours[m] < dst){
-            //cout << "[GRGETEDGE]: Go on right" << endl;
+            ////cout << "[GRGETEDGE]: Go on right" << endl;
             start = m+1;
         }
         else{
-            //cout << "[GRGETEDGE]: Go on left" << endl;
+            ////cout << "[GRGETEDGE]: Go on left" << endl;
             end = m-1;
         }
     }
 
-    cout << "[GRGETEDGE]: Not found" << endl;
+    //cout << "[GRGETEDGE]: Not found" << endl;
     return -1;
 }
 
@@ -310,10 +321,10 @@ void graph_print(Graph* graph){
     cout << "Offset: "<<graph->offset<<endl;
     /*for(int i=0;i<graph->number_nodes;i++){
         Node node = graph->nodes[i];
-        //cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
+        ////cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
         for(int j=0;j<node.degree;j++){
             if(node.id < node.neighbours[j])
-                cout << node.id << " " << node.neighbours.at(j) << endl;
+                //cout << node.id << " " << node.neighbours.at(j) << endl;
         }
     }*/
 
@@ -335,13 +346,24 @@ bool graph_remove_edge(Graph* graph, long src, long dst){
         return false;
 
     long index = graph_get_edge(graph, src, dst);
-
+    //cout << "[GR-REM-EDGE]: Node " << dst << " to be removed from " << src << " is in position " << index << " --> " << graph->nodes[src].neighbours[index]<< endl;
+    //graph_print(graph);
     if(index < 0)
         return false;
+
+    //cout << "[GR-REM-EDGE]: Neighbours before delete: ";
+    //graph_print_array(graph, src);
 
     graph->nodes[src].neighbours.erase(graph->nodes[src].neighbours.begin()+index);
     graph->nodes[src].weight.erase(graph->nodes[src].weight.begin()+index);
     graph->nodes[src].degree--;
+
+    //graph->nodes[src].neighbours[index] = -1;
+
+    //cout << "[GR-REM-EDGE]: Degree: " << graph->nodes[src].degree << endl;
+    //cout << "[GR-REM-EDGE]: Neighbours after delete: ";
+    //graph_print_array(graph, src);
+    //graph_print(graph);
 
     return true;
 }
@@ -381,7 +403,7 @@ void graph_store_file(char* filename, Graph* graph){
 
     for(int i=0;i<graph->number_nodes;i++){
         Node node = graph->nodes[i];
-        //cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
+        ////cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
         for(int j=0;j<node.degree;j++){
             if(node.id < node.neighbours[j])
                 output << node.id << " " << node.neighbours.at(j) << endl;
@@ -420,9 +442,9 @@ long graph_count_triangles_node(Graph* graph, long node){
         long start_nodeV = graph_index_least_great_element(graph->nodes[node].neighbours, graph->nodes[node].degree, neighbor);
         long start_nodeU = graph_index_least_great_element(graph->nodes[neighbor].neighbours, graph->nodes[neighbor].degree, neighbor);
 
-        //cout << "Node " << node << " neighbor " << neighbor << endl;
-        //cout << "Node start: " << start_nodeV << " end: " << end_nodeV << endl;
-        //cout << "Neigh start: " << start_nodeU << " end: " << end_nodeU << endl;
+        ////cout << "Node " << node << " neighbor " << neighbor << endl;
+        ////cout << "Node start: " << start_nodeV << " end: " << end_nodeV << endl;
+        ////cout << "Neigh start: " << start_nodeU << " end: " << end_nodeU << endl;
 
         if(start_nodeU >= 0 && start_nodeV >= 0)
             count += graph_count_intersections(graph->nodes[node].neighbours, graph->nodes[node].degree, start_nodeV, graph->nodes[neighbor].neighbours, graph->nodes[neighbor].degree, start_nodeU);
@@ -484,25 +506,25 @@ void graph_print_array(Graph* graph, long node){
 }
 
 void graph_communities_to_file(Graph* graph, char* filename){
-    cout << "[GR-COMM-FILE] Initializing" << endl;
+    //cout << "[GR-COMM-FILE] Initializing" << endl;
     ofstream input;
-    cout << "[GR-COMM-FILE] Opening file" << endl;
+    //cout << "[GR-COMM-FILE] Opening file" << endl;
     input.open(filename, ios::out);
 
     //COL1 = node_id
     //COL2 = cluster_id
-    cout << "[GR-COMM-FILE] Iterating on all nodes. If node-id > 0 then it is still a community" << endl;
+    //cout << "[GR-COMM-FILE] Iterating on all nodes. If node-id > 0 then it is still a community" << endl;
     for (int i = 0; i < graph->number_nodes; ++i) {
         if(graph->nodes[i].id < 0)
             continue;
 
-        cout << "[GR-COMM-FILE] Community " << i << " with number elements = " << graph->nodes[i].community->number_nodes << endl;
+        //cout << "[GR-COMM-FILE] Community " << i << " with number elements = " << graph->nodes[i].community->number_nodes << endl;
         for (int j = 0; j < graph->nodes[i].community->number_nodes; ++j) {
             input << graph->nodes[i].community->array[j] + graph->offset << " " << i << endl;
         }
     }
 
-    cout << "[GR-COMM-FILE] Closing file" << endl;
+    //cout << "[GR-COMM-FILE] Closing file" << endl;
     input.close();
 }
 
@@ -513,42 +535,42 @@ long* graph_get_communities(Graph* graph){
     long* communities = new long[graph->number_communities];
     long comm_index = 0;
 
-    cout << "#######################" << endl;
-    cout << "Available communities: ";
+    //cout << "#######################" << endl;
+    //cout << "Available communities: ";
     for (int i = 0; i < graph->number_nodes; ++i) {
         if(graph->nodes[i].id >= 0)
         {
             communities[comm_index++] = i;
-            cout << i << " ";
+            //cout << i << " ";
         }
     }
-    cout << endl;
-    cout << "#######################" << endl;
+    //cout << endl;
+    //cout << "#######################" << endl;
 
     return communities;
 }
 
 bool graph_substitute_neighbour(Graph* graph, long node, long old_node, long new_node){
-    cout << "[GRSUB]: Prechecks: Node:" << node << ", Old Node: " << old_node << ", New Node: " << new_node << endl;
+    //cout << "[GRSUB]: Prechecks: Node:" << node << ", Old Node: " << old_node << ", New Node: " << new_node << endl;
     if(graph == NULL)
         return false;
 
     if(node == new_node)
         return false;
 
-    cout << "[GRSUB]: Getting indexes of neighbors" << endl;
+    //cout << "[GRSUB]: Getting indexes of neighbors" << endl;
     long index_old_node = graph_get_edge(graph, node, old_node);
     long index_new_node = graph_get_edge(graph, node, new_node);
 
-    //cout << "[GRSUB]: Neighbors of " << node << ": ";
+    ////cout << "[GRSUB]: Neighbors of " << node << ": ";
     //graph_print_array(graph, node);
 
     //new node is not contained in neighbours of node
-    //cout << "[GRSUB]: Checking indexes" << endl;
+    ////cout << "[GRSUB]: Checking indexes" << endl;
     if(index_new_node < 0){
         //change link
         if(index_old_node >= 0) {
-            cout << "[GRSUB]: The new node is not a neighbor of " << node << endl;
+            //cout << "[GRSUB]: The new node is not a neighbor of " << node << endl;
             //TODO: FIX PROBLEM --> the edge doesn't have !
             long weight = graph->nodes[node].weight.at(index_old_node);
             graph->nodes[node].neighbours.at(index_old_node) = new_node;
@@ -557,27 +579,27 @@ bool graph_substitute_neighbour(Graph* graph, long node, long old_node, long new
         }
     }
     else{
-        cout << "[GRSUB]: There are both old and new node -> fix weight" << endl;
-        //cout << "[GRSUB]: Neighbours of " << node << ": ";
+        //cout << "[GRSUB]: There are both old and new node -> fix weight" << endl;
+        ////cout << "[GRSUB]: Neighbours of " << node << ": ";
         //graph_print_array(graph, node);
-        //cout << "[GRSUB]: Neighbours of " << new_node << ": ";
+        ////cout << "[GRSUB]: Neighbours of " << new_node << ": ";
         //graph_print_array(graph, new_node);
         //change weight and remove the old node
-        cout << "[GRSUB]: Getting index for weight" << endl;
+        //cout << "[GRSUB]: Getting index for weight" << endl;
         long index_node_from_new_node = graph_get_edge(graph, new_node, node);
         //update weight from both directions
-        cout << "[GRSUB]: Computing weight" << endl;
+        //cout << "[GRSUB]: Computing weight" << endl;
         graph->nodes[node].weight[index_new_node] += graph->nodes[node].weight[index_old_node];
-        cout << "[GRSUB]: Weight " << node << " -> " << new_node << " = " << graph->nodes[node].weight[index_new_node] << endl;
+        //cout << "[GRSUB]: Weight " << node << " -> " << new_node << " = " << graph->nodes[node].weight[index_new_node] << endl;
         graph->nodes[new_node].weight[index_node_from_new_node] += graph->nodes[node].weight[index_old_node];
-        cout << "[GRSUB]: Weight " << new_node << " -> " << node << " = " << graph->nodes[new_node].weight[index_node_from_new_node] << endl;
-        cout << "[GRSUB]: Remove edge" << endl;
+        //cout << "[GRSUB]: Weight " << new_node << " -> " << node << " = " << graph->nodes[new_node].weight[index_node_from_new_node] << endl;
+        //cout << "[GRSUB]: Remove edge" << endl;
         graph_remove_edge(graph, node, old_node);
     }
 
-    //cout << "[GRSUB]: Neighbors of " << node << " after modification: ";
+    ////cout << "[GRSUB]: Neighbors of " << node << " after modification: ";
     //graph_print_array(graph, node);
-    cout << "[GRSUB]: Return" << endl;
+    //cout << "[GRSUB]: Return" << endl;
     return true;
 }
 
@@ -622,40 +644,60 @@ void swap_vector(vector<long>* array, long index1, long index2){
 }
 
 bool graph_merge_communities(Graph* graph, long v, long u){
-    cout << "[GRMERGE]: Prechecks. Communities: " << v << ", " << u << endl;
+    //cout << "[GRMERGE]: Prechecks. Communities: " << v << ", " << u << endl;
     if(graph == NULL)
         return false;
 
-    //cout << "[GRMERGE]: Links of community " << v << ": ";
-    //graph_print_array(graph, v);
+    //cout << "[GRMERGE]: Nodes of community " << v << ": ";
+    //community_print(graph->nodes[v].community);
 
-    //cout << "[GRMERGE]: Links of community " << u << ": ";
-    //graph_print_array(graph, u);
+    //cout << "[GRMERGE]: Nodes of community " << u << ": ";
+    //community_print(graph->nodes[u].community);
 
     //merge 2 communities
-    cout << "[GRMERGE]: Get merged community" << endl;
+    //cout << "[GRMERGE]: Get merged community" << endl;
 
-    cout << "[COMMERGE]: Prechecks #1" << endl;
+    //cout << "[COMMERGE]: Prechecks #1" << endl;
     if(graph->nodes[v].community == NULL || graph->nodes[u].community == NULL){
         cout << "--------- ERRORE ---------" << endl;
     }
 
-    Community* final = community_merge(graph->nodes[v].community, graph->nodes[u].community);
+    community_merge(graph->nodes[v].community, graph->nodes[u].community);
 
-    if(final == NULL)
+    //graph_print(graph);
+
+    /*
+     * Community* final = community_merge(graph->nodes[v].community, graph->nodes[u].community);
+
+    if(final == NULL){
+        cout << "--------- ERRORE --------" << endl;
         return false;
+    }
+
 
     cout << "[GRMERGE]: Free old communities" << endl;
-    if(graph->nodes[v].community != NULL)
+    cout << "[GRMERGE]: Freeing community " << v << " with following nodes: ";
+    //TODO: FIX COMMUNITY DEINIT
+    community_print(graph->nodes[v].community);
+    if(graph->nodes[v].community != NULL){
         community_deinit(graph->nodes[v].community);
+        graph->nodes[v].community = NULL;
+    }
+
+    cout << "[GRMERGE]: Freeing community " << u << " with following nodes: ";
+    community_print(graph->nodes[u].community);
     if(graph->nodes[u].community != NULL)
+    {
         community_deinit(graph->nodes[u].community);
+        graph->nodes[u].community = NULL;
+    }
 
-    graph->nodes[v].community = NULL;
-    graph->nodes[u].community = NULL;
-
-    cout << "[GRMERGE]: Set new community" << endl;
+    cout << "[GRMERGE]: Set new community to " << v << endl;
     graph->nodes[v].community = final;
+    cout << "[GRMERGE]: New community " << v << ": ";
+    community_print(graph->nodes[v].community);
+
+     */
 
     //merge neighbours
     //for (int j = 0; j < graph->nodes[u].degree; ++j) {
@@ -663,26 +705,29 @@ bool graph_merge_communities(Graph* graph, long v, long u){
     //}
 
     //fix all neighbours of u such that they points against v
-    cout << "[GRMERGE]: Fix all neighbors with the newest comm. ("<< graph->nodes[u].degree << ")" << endl;
+    //cout << "[GRMERGE]: Fix all neighbors with the newest comm. ("<< graph->nodes[u].degree << ")" << endl;
     for (long i = 0; i < graph->nodes[u].degree; ++i) {
         long neighbours = graph->nodes[u].neighbours[i];
 
         if(neighbours == v)
             continue;
 
-        cout << "[GRMERGE]: Substite the old comm with the new one (" << neighbours << ", old=" << u << ", new=" << v << ")" << endl;
+        //cout << "[GRMERGE]: Substite the old comm with the new one (" << neighbours << ", old=" << u << ", new=" << v << ")" << endl;
         graph_substitute_neighbour(graph, neighbours, u, v);
     }
 
     //remove old link between the 2 communities
     //cout << "[GRMERGE]: Links before removement: ";
     //graph_print_array(graph, v);
-    cout << "[GRMERGE]: Removing from " << v << " the neighbour " << u << endl;
+    //cout << "[GRMERGE]: Removing from " << v << " the neighbour " << u << endl;
+    //TODO: REMOVE EDGE --> CRASH
+    //cout << endl << "CHECK PROBLEM" << endl << endl;
     graph_remove_edge(graph, v, u);
     //cout << "[GRMERGE]: Links after removement: ";
     //graph_print_array(graph, v);
 
-    cout << "[GRMERGE]: Decrease number of comm. and set one of the 2 comm as -1" << endl;
+
+    //cout << "[GRMERGE]: Decrease number of comm. and set one of the 2 comm as -1" << endl;
     graph->number_communities--;
 
     graph->nodes[u].id = -1;
@@ -690,7 +735,7 @@ bool graph_merge_communities(Graph* graph, long v, long u){
     //cout << "[GRMERGE]: Final community = ";
     //community_print(graph->nodes[v].community);
 
-    cout << "[GRMERGE]: Return" << endl;
+    //cout << "[GRMERGE]: Return" << endl;
     return true;
 }
 
@@ -713,7 +758,8 @@ long graph_get_max_weight(Graph* graph, long node){
     long weight = 0;
     for (int i = 0; i < graph->nodes[node].weight.size(); ++i) {
         weight = graph->nodes[node].weight[i];
-        weight > max ? max = weight : NULL;
+        if(weight > max)
+            max = weight;
     }
     return max;
 }

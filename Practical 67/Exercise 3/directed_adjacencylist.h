@@ -20,6 +20,9 @@ struct DGraph{
     long *graph_out;
     long *graph_degree_in;
     long *graph_degree_out;
+    long *weight_out_sum;
+    long *weight_in_sum;
+    long *node_weight;
     long number_nodes;
     long number_edges;
     long offset;
@@ -48,6 +51,8 @@ bool dgraph_add_edge_out(DGraph*, long node, long neighbour);
 bool dgraph_load_data_from_file(DGraph*, fstream &file);
 bool dgraph_load_data(DGraph* graph, vector<pair<long,long> >* vgraph);
 bool dgraph_set_nodes(DGraph* graph);
+
+void dgraph_set_node_weight(DGraph* dgraph, long graph_node, long weight);
 
 bool fast_graph_add_edge_out(DGraph* graph, long node, long neighbour);
 bool fast_graph_add_edge_in(DGraph* graph, long node, long neighbour);

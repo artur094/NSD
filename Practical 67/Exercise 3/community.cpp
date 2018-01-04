@@ -6,43 +6,18 @@
 #include "community.h"
 
 Community* community_init(){
-    return community_init(10);
-}
+    //cout << "Initializing community"<< endl;
+    Community* comm = new Community();
 
-Community* community_init(long length){
-    Community* community = new Community();
-    community->array = new long[length];
-    community->length = length;
-    community->number_nodes = 0;
-    community->metric = 0.0;
-    return community;
+    //cout << "Setting variables" << endl;
+    comm->number_nodes = 0;
+    comm->metric = 0.0;
+    //cout << "Returning community" << endl;
+    return comm;
 }
 
 void community_deinit(Community* community){
-    delete[] community->array;
-    community->array = NULL;
     delete community;
-}
-
-//Called when the community doesn't have anymore space
-//Double the space
-void community_resize(Community* community){
-    if(community == NULL)
-        return;
-
-    //popolate the new array
-    long new_size = community->length*2;
-    long *new_array = new long[new_size];
-    for (int i = 0; i < community->number_nodes; ++i) {
-        new_array[i] = community->array[i];
-    }
-
-    //free the old array
-    delete[] community->array;
-
-    //substitute the old array with the new one
-    community->array = new_array;
-    community->length = new_size;
 }
 
 bool community_insert(Community* community, long node){
@@ -50,17 +25,12 @@ bool community_insert(Community* community, long node){
     if(community == NULL)
         return false;
 
-    if(community->array == NULL)
-        return false;
-
     //If already inside the community
+    //cout << "contains" << endl;
     if(community_contains(community, node))
         return false;
 
-    //if there is not enough space
-    if(community->number_nodes == community->length)
-        community_resize(community);
-
+    //cout << "greater" << endl;
     //search the first node with greatest (or equal) id than the given one
     long tmp = node;
     long pos = community_first_greater_than(community, node);
@@ -71,85 +41,42 @@ bool community_insert(Community* community, long node){
     //I'm going to add a new value, so I need more space
     community->number_nodes++;
 
-    for(; pos<community->number_nodes; pos++){
-        tmp = node;
-        node = community->array[pos];
-        community->array[pos] = tmp;
-    }
+    //cout << "Adding in position " << pos << endl;
+    community->array.insert(community->array.begin()+pos, node);
 
     return true;
 }
 
-Community* community_merge(Community* community, Community*  community1){
-    cout << "[COMMERGE]: Prechecks #1" << endl;
+void community_merge(Community* community, Community*  community1){
+    //cout << "[COMMERGE]: Prechecks #1" << endl;
     if(community == NULL || community1 == NULL)
-        return NULL;
+        return;
 
-    cout << "[COMMERGE]: Prechecks #2" << endl;
-    if(community->array == NULL || community1->array == NULL)
-        return NULL;
-
-    cout << "[COMMERGE]: Initializing final community" << endl;
-    Community* final = community_init(community->length + community1->length);
-
-    int i=0; //community
-    int j=0; //community1
-    int k=0; //new community
-
-    cout << "[COMMERGE]: Adding in ordered way all nodes" << endl;
-    while(i < community->number_nodes && j < community1->number_nodes){
-        if(community->array[i] == community1->array[j]){
-            final->array[k] = community->array[i];
-            i++;
-            j++;
-        }
-        else if(community->array[i] < community1->array[j]){
-            final->array[k] = community->array[i];
-            i++;
-        }
-        else{
-            final->array[k] = community1->array[j];
-            j++;
-        }
-        k++;
+    for (int i = 0; i < community1->array.size(); ++i) {
+        community->array.push_back(community1->array[i]);
+        community->number_nodes++;
     }
-
-    cout << "[COMMERGE]: Adding remaining nodes" << endl;
-    for(; i < community->number_nodes; i++, k++){
-        final->array[k] = community->array[i];
-    }
-
-    for(; j < community1->number_nodes; j++, k++){
-        final->array[k] = community1->array[j];
-    }
-
-    final->number_nodes = k;
-
-    cout << "[COMMERGE]: Return" << endl;
-    return final;
+    sort(community->array.begin(), community->array.begin() + community->number_nodes);
 }
 
 bool community_contains(Community* community, long node){
     //Pre checks
     if(community == NULL)
         return false;
-    if(community->array == NULL)
-        return false;
 
     //Binary search
-    int start = 0;
-    int end = community->number_nodes-1;
-    int m;
+    long start = 0;
+    long end = community->number_nodes-1;
+    long m;
 
-    if(community->array[start] == node)
-        return true;
-    if(community->array[end] == node)
-        return false;
-
-    while(start<end){
+    while(start<=end){
         m = (start+end)/2;
 
         if(community->array[m] == node)
+            return true;
+        else if(community->array[start] == node)
+            return true;
+        else if(community->array[end] == node)
             return true;
         else if(community->array[m] < node)
             start = m+1;
@@ -161,11 +88,16 @@ bool community_contains(Community* community, long node){
 }
 
 long community_first_greater_than(Community* community, long node){
+    if(community == NULL)
+        return -1;
+    if(community->array.size() <= 0)
+        return -1;
+
     //search the first node with greatest (or equal) id than the given one
-    int start = 0;
-    int end = community->number_nodes-1;
-    int m;
-    int pos;
+    long start = 0;
+    long end = community->number_nodes-1;
+    long m;
+    long pos;
 
     if(node < community->array[start])
         return 0; //I have to more the whole array
@@ -173,7 +105,7 @@ long community_first_greater_than(Community* community, long node){
     if(node > community->array[end])
         return -1;  //No nodes greater than the input
 
-    while(start < end){
+    while(start <= end){
         //if m-th node is bigger
         if(community->array[m] > node){
             //check if m-1th node is smaller -> if yes return m as the first node greater than the input
@@ -197,6 +129,61 @@ void community_print(Community* community){
     cout << endl;
 }
 
+Community* community_merge_old(Community* community, Community*  community1){
+    //cout << "[COMMERGE]: Prechecks #1" << endl;
+    if(community == NULL || community1 == NULL)
+        return NULL;
 
+    long length = community->array.size() + community1->array.size();
+    //cout << "[COMMERGE]: Initializing final community with lenth=" << length << " = " << community->array.size() << " + " << community1->array.size() << endl;
+    Community* final_comm = community_init();
+    //cout << "[COMMERGE]: Resizing of " << length << endl;
+    //final_comm->array.resize(length);
+
+    int i=0; //community
+    int j=0; //community1
+    int k=0; //new community
+
+    //cout << "[COMMERGE]: Adding in ordered way all nodes" << endl;
+    //cout << "[COMMERGE]: Comm1 -> #nodes = " << community->number_nodes << " and vector size=" << community->array.size() << endl;
+    //cout << "[COMMERGE]: Comm2 -> #nodes = " << community1->number_nodes << " and vector size=" << community1->array.size() << endl;
+    while(i < community->number_nodes && j < community1->number_nodes){
+        //cout << community->array[i] << " == " << community1->array[j] << endl;
+        if(community->array[i] == community1->array[j]){
+            //cout << "Trying to add " << community->array[i] << endl;
+            final_comm->array.push_back(community->array[i]);
+            //cout << "Added " << final_comm->array[final_comm->array.size()-1] << endl;
+            i++;
+            j++;
+        }
+        else if(community->array[i] < community1->array[j]){
+            //cout << "Trying to add " << community->array[i] << endl;
+            final_comm->array.push_back(community->array[i]);
+            //cout << "Added " << final_comm->array[final_comm->array.size()-1] << endl;
+            i++;
+        }
+        else{
+            //cout << "Trying to add " << community1->array[j] << endl;
+            final_comm->array.push_back(community1->array[j]);
+            //cout << "Added " << final_comm->array[final_comm->array.size()-1] << endl;
+            j++;
+        }
+        k++;
+    }
+
+    //cout << "[COMMERGE]: Adding remaining " << community->number_nodes - i << " nodes, from " << i << " to " << community->number_nodes << " (vector size = " << community->array.size() << ")" << endl;
+    for(; i < community->number_nodes; i++, k++){
+        final_comm->array.push_back(community->array[i]);
+    }
+    //cout << "[COMMERGE]: Adding remaining " << community1->number_nodes - j << " nodes, from " << j << " to " << community1->number_nodes << " (vector size = " << community1->array.size() << ")" << endl;
+    for(; j < community1->number_nodes; j++, k++){
+        final_comm->array.push_back(community1->array[j]);
+    }
+
+    final_comm->number_nodes = k;
+
+    //cout << "[COMMERGE]: Return" << endl;
+    return final_comm;
+}
 
 

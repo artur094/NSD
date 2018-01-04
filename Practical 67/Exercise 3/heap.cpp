@@ -7,6 +7,8 @@
 
 using namespace std;
 
+//TODO: fix heap!!!
+
 Heap* heap_init(Graph* graph){
     Heap* heap = new Heap();
     heap->heap = new Item[graph->number_nodes];
@@ -94,10 +96,14 @@ void heap_remove_node(Heap* heap,Graph* graph, long node){
         long index_neighbour = heap->node_indexes[neighbour];
 
         if(index_neighbour < heap->length){
-            Item tmp = heap->heap[index_neighbour];
-            heap->heap[index_neighbour].degree = graph->nodes[index_neighbour].degree;
-            heap->heap[index_neighbour].weight = graph_get_sum_weight(graph, index_neighbour);
-            heap->heap[index_neighbour].max_weight = graph_get_max_weight(graph, index_neighbour);
+            Item tmp;
+            tmp.degree = heap->heap[index_neighbour].degree;
+            tmp.weight = heap->heap[index_neighbour].weight;
+            tmp.max_weight = heap->heap[index_neighbour].max_weight;
+
+            heap->heap[index_neighbour].degree = graph->nodes[neighbour].degree;
+            heap->heap[index_neighbour].weight = graph_get_sum_weight(graph, neighbour);
+            heap->heap[index_neighbour].max_weight = graph_get_max_weight(graph, neighbour);
             //heap->heap[index_neighbour].degree = graph
 
             //cout << "After reducing degree of neighbour: "<< neighbour <<endl;
@@ -181,7 +187,7 @@ void heap_build(Heap* heap){
 void heap_print(Heap* heap){
     for (int i = 0; i < heap->length; ++i) {
         cout << heap->heap[i].node<< " degree=" << heap->heap[i].degree << ", weight=" << heap->heap[i].weight << ", max weight=" << heap->heap[i].max_weight
-             << " in pos " << heap->node_indexes[heap->heap[i].node] << " --> ID in that pos = " << heap->heap[heap->node_indexes[heap->heap[i].node]].node+ heap->graph->offset << endl;
+             << " in pos " << heap->node_indexes[heap->heap[i].node] << " --> ID in that pos = " << heap->heap[heap->node_indexes[heap->heap[i].node]].node << endl;
     }
 }
 
