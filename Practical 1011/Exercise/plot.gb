@@ -69,3 +69,16 @@ set term png
 set output 'deleted.png'
 
 plot 'links_fractions.txt' using 1:3 with points ls 1
+
+replot
+
+set title 'Diameter'
+#set ylabel ''
+set xlabel ''
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'diameter.png'
+
+plot 'diameter.txt' using 1:2 with points ls 1

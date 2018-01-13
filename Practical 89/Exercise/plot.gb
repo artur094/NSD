@@ -6,7 +6,7 @@ set style line 4 lc rgb '#f58231'   # --- red
 
 #DEGREE
 
-set title 'Degree Distribution'
+set title 'InterContact Duration Distribution'
 set ylabel '#Nodes'
 set xlabel 'Degree'
 set logscale y 10

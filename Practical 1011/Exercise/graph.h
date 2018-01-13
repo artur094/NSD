@@ -46,7 +46,7 @@ void contact_deinit(Contact* contact);
 Contacts* contacts_init();
 void contacts_deinit(Contacts* contacts);
 Contacts* contacts_load(char* filename);
-void contacts_size(Contacts* contacts, long &number_nodes, long &number_contacts, long &duration, long &start);
+void contacts_size(Contacts* contacts, long &number_nodes, long &number_contacts, long &duration, long &start, long &offset);
 void contacts_normalization(Contacts* contacts, long offset);
 void contacts_to_file(Contacts* contacts, char* filename);
 void contacts_to_file_sorted(Contacts* contacts, string filename);

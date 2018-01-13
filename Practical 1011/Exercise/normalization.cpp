@@ -42,6 +42,9 @@ int main(int argc, char** argv) {
 
     contacts_to_file(contacts, "normalized.txt");
 
+    contacts_to_file_sorted(contacts, "normalized_sorted.txt");
+
+    contacts_intercontacts_distribution_to_file("intercontacts.txt", contacts, duration);
 
     contacts_deinit(contacts);
 

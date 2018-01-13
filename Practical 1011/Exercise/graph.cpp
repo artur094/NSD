@@ -87,7 +87,7 @@ Contacts* contacts_load(char* filename){
     return contacts;
 }
 
-void contacts_size(Contacts* contacts, long &number_nodes, long &number_contacts, long &duration, long &start_time){
+void contacts_size(Contacts* contacts, long &number_nodes, long &number_contacts, long &duration, long &start_time, long &offset){
     if (contacts == NULL)
         return;
 
@@ -130,6 +130,7 @@ void contacts_size(Contacts* contacts, long &number_nodes, long &number_contacts
     number_nodes = max_id - min_id + 1;
     duration = end - start + 1;
     start_time = start;
+    offset = min_id;
 }
 
 InterContacts* intercontacts_from_contacts(Contacts* contacts){
@@ -374,7 +375,7 @@ void contacts_links_creation_deletion_to_file(string filename, string filename_s
 void markovian_to_file(string filename, long number_nodes, long iterations, double p, double d){
     //Initialization
     fstream out;
-    out.open(filename, ios::out);
+    out.open("tmp.txt", ios::out);
 
     InterContacts* created = intercontacts_init();
     InterContacts* non_created = intercontacts_init();
@@ -400,7 +401,8 @@ void markovian_to_file(string filename, long number_nodes, long iterations, doub
             //create links
             if(prob < p){
                 //cout << i << " " << non_created->at(j)->node1 << " " << non_created->at(j)->node2 << " C" << endl;
-                out << i << " " << non_created->at(j)->node1 << " " << non_created->at(j)->node2 << " C" << endl;
+                //out << i << " " << non_created->at(j)->node1 << " " << non_created->at(j)->node2 << " C" << endl;
+                non_created->at(j)->times = i;
                 created->push_back(non_created->at(j));
                 non_created->erase(non_created->begin()+j);
             }
@@ -412,7 +414,7 @@ void markovian_to_file(string filename, long number_nodes, long iterations, doub
             //create links
             if(prob < d){
                 //cout << i << " " << created->at(j)->node1 << " " << created->at(j)->node2 << " S" << endl;
-                out << i << " " << created->at(j)->node1 << " " << created->at(j)->node2 << " S" << endl;
+                out << created->at(j)->node1 << " " << created->at(j)->node2 << " " << created->at(j)->times << " " << i << endl;
                 non_created->push_back(created->at(j));
                 created->erase(created->begin()+j);
             }
@@ -425,6 +427,10 @@ void markovian_to_file(string filename, long number_nodes, long iterations, doub
     intercontacts_deinit(non_created);
 
     out.close();
+
+    string command = "sort -n -k1,2 tmp.txt > " + filename;
+
+    system(command.c_str());
 }
 
 // creation: based on popularity? based on a function over time?
@@ -442,7 +448,7 @@ double markovian_creation_popularity(double probability, long degreeA, long degr
 void markovian_proposal_to_file(string filename, long number_nodes, long iterations, double creation_prob, double deletion_mean, double deletion_variance ){
     //Initialization
     fstream out;
-    out.open(filename, ios::out);
+    out.open("tmp.txt", ios::out);
 
     InterContacts* created = intercontacts_init();
     InterContacts* non_created = intercontacts_init();
@@ -480,8 +486,9 @@ void markovian_proposal_to_file(string filename, long number_nodes, long iterati
                 //Increase ddegree of 2 nodes
                 degree[non_created->at(j)->node1]++;
                 degree[non_created->at(j)->node2]++;
+                non_created->at(j)->times = i;
                 non_created->at(j)->ttl = deletion_distribution(generator); //times used as START time
-                out << i << " " << non_created->at(j)->node1 << " " << non_created->at(j)->node2 << " C" << endl;
+                //out << i << " " << non_created->at(j)->node1 << " " << non_created->at(j)->node2 << " C" << endl;
                 created->push_back(non_created->at(j));
                 non_created->erase(non_created->begin()+j);
             }
@@ -493,7 +500,7 @@ void markovian_proposal_to_file(string filename, long number_nodes, long iterati
                 degree[created->at(j)->node1]--;
                 degree[created->at(j)->node2]--;
 
-                out << i << " " << created->at(j)->node1 << " " << created->at(j)->node2 << " S" << endl;
+                out << created->at(j)->node1 << " " << created->at(j)->node2 << " " << created->at(j)->times << " " << i << endl;
                 non_created->push_back(created->at(j));
                 created->erase(created->begin()+j);
             }else
@@ -507,5 +514,9 @@ void markovian_proposal_to_file(string filename, long number_nodes, long iterati
     intercontacts_deinit(non_created);
 
     out.close();
+
+    string command = "sort -n -k1,2 tmp.txt > " + filename;
+
+    system(command.c_str());
 }
 
