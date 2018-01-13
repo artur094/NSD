@@ -1,0 +1,71 @@
+set style line 1 lc rgb '#e6194b' pt 7  # --- blue
+set style line 2 lc rgb '#3cb44b' pt 7   # --- red
+set style line 3 lc rgb '#0082c8'   # --- blue
+set style line 4 lc rgb '#f58231'   # --- red
+set terminal png size 1200,900 enhanced font "Helvetica" 14
+
+
+#INTERCONTACT
+
+set title 'InterContact Duration Distribution'
+#set ylabel ''
+set xlabel 'Intercontact'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'intercontact.png'
+
+plot 'intercontacts.txt' using 1:2 with points ls 1
+
+replot
+
+set title 'InterContact Duration Cumulative Distribution'
+#set ylabel ''
+set xlabel 'Intercontact'
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'intercontact_cumulative.png'
+
+plot 'cumulative_intercontacts.txt' using 1:2 with points ls 1
+
+replot
+
+set title 'Average Degree Distribution'
+#set ylabel ''
+set xlabel ''
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'avg_degree.png'
+
+plot 'avg_degree.txt' using 1:2 with points ls 1
+
+replot
+
+set title 'Created Links'
+#set ylabel ''
+set xlabel ''
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'created_links.png'
+
+plot 'links_fractions.txt' using 1:2 with points ls 1
+
+replot
+
+set title 'Deleted Links'
+#set ylabel ''
+set xlabel ''
+set logscale y 10
+set logscale x 10
+
+set term png
+set output 'deleted.png'
+
+plot 'links_fractions.txt' using 1:3 with points ls 1

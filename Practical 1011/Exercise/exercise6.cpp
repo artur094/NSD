@@ -55,9 +55,6 @@ int main(int argc, char** argv) {
     cout << "Computing average degrees" << endl;
     contacts_degree_to_file("avg_degree.txt", "sorted_normalized.txt", number_nodes);
 
-    cout << "Computing fraction of created and deleted links" << endl;
-    contacts_links_creation_deletion_to_file("links_fractions.txt", "sorted_normalized.txt", number_nodes);
-
 
     contacts_deinit(contacts);
 
