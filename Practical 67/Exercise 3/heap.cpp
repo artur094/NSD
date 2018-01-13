@@ -82,13 +82,6 @@ void heap_remove_node(Heap* heap,Graph* graph, long node){
     //cout << endl << "After restore: " << endl;
 
     heap_bubble_down(heap, 0);
-    //heap_print(heap);
-    /*
-    for (int i = 0; i < heap->graph->graph_degree[node]; ++i) {
-        long neighbour = heap->graph->neighbours[heap->graph->graph[node] + i];
-        cout << "Neighbour of " << node + heap->graph->offset << " --> " << neighbour + heap->graph->offset
-                << " in pos " << heap->node_indexes[neighbour] << " --> ID in that pos = " << heap->heap[heap->node_indexes[neighbour]].node+ heap->graph->offset << endl;
-    }*/
 
     //fix neighbours
     for (int i = 0; i < graph->nodes[node].degree; ++i) {
@@ -96,6 +89,8 @@ void heap_remove_node(Heap* heap,Graph* graph, long node){
         long index_neighbour = heap->node_indexes[neighbour];
 
         if(index_neighbour < heap->length){
+//            cout << "Before reducing degree of neighbour: "<< neighbour <<endl;
+//            heap_print(heap);
             Item tmp;
             tmp.degree = heap->heap[index_neighbour].degree;
             tmp.weight = heap->heap[index_neighbour].weight;
@@ -106,13 +101,15 @@ void heap_remove_node(Heap* heap,Graph* graph, long node){
             heap->heap[index_neighbour].max_weight = graph_get_max_weight(graph, neighbour);
             //heap->heap[index_neighbour].degree = graph
 
-            //cout << "After reducing degree of neighbour: "<< neighbour <<endl;
-            //heap_print(heap);
-            //cout << endl << "After restoring bottom-up the heap:"<<endl;
-            if(heap_condition(tmp, heap->heap[index_neighbour]))
-                heap_bubble_up(heap, index_neighbour);
-            else
+//            cout << "After reducing degree of neighbour: "<< neighbour <<endl;
+//            heap_print(heap);
+//            cout << endl << "After restoring bottom-up the heap:"<<endl;
+            if(heap_condition(tmp, heap->heap[index_neighbour])) {
                 heap_bubble_down(heap, index_neighbour);
+            }
+            else {
+                heap_bubble_up(heap, index_neighbour);
+            }
             //heap_print(heap);
         }
     }

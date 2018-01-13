@@ -27,6 +27,8 @@ DGraph* dgraph_init(long number_nodes, long number_edges, long offset){
     graph->graph_degree_in = new long[number_nodes];
     graph->graph_degree_out = new long[number_nodes];
 
+    graph->number_neighbours = new long[number_nodes];
+
     graph->neighbours_in = new long[number_edges];
     graph->neighbours_in_weight = new long[number_edges];
     graph->neighbours_out = new long[number_edges];
@@ -47,6 +49,8 @@ DGraph* dgraph_init(long number_nodes, long number_edges, long offset){
     memset(graph->neighbours_out, -1, sizeof(long)*number_edges);
     memset(graph->neighbours_in_weight, 0, sizeof(long)*number_edges);
     memset(graph->neighbours_out_weight, 0, sizeof(long)*number_edges);
+
+    memset(graph->number_neighbours, 0, sizeof(long)*number_nodes);
 
     memset(graph->graph_degree_in, 0, sizeof(long)*number_nodes);
     memset(graph->graph_degree_out, 0, sizeof(long)*number_nodes);
@@ -96,11 +100,15 @@ void dgraph_deinit(DGraph* graph){
     delete [] graph->neighbours_out_weight;
     delete [] graph->last_neighbor_in;
     delete [] graph->last_neighbor_out;
+    delete [] graph->number_neighbours;
+    delete [] graph->weight_out_sum;
+    delete [] graph->weight_in_sum;
+    delete [] graph->node_weight;
 
     delete graph;
 }
 
-DGraph* dgraph_load_graph(vector<pair<long,long> >* vgraph){
+DGraph* dgraph_load_graph(DEdgelist* edgelist){
     //cout << "[DG-LOAD]: Defining values" << endl;
     DGraph* graph;
     long number_nodes=0;
@@ -109,15 +117,15 @@ DGraph* dgraph_load_graph(vector<pair<long,long> >* vgraph){
 
     //cout << "[DG-LOAD]: Pre check on input graph" << endl;
     //If the file can't be opened, return false
-    if(vgraph == NULL)
+    if(edgelist == NULL)
         return NULL;
 
-    if(vgraph->size() <= 0)
+    if(edgelist->size() <= 0)
         return NULL;
 
     //cout << "[DG-LOAD]: Computing size of the graph" << endl;
     //Compute size of the graph and get the offset between the index for arrays and the ID of nodes
-    dgraph_compute_size(vgraph, number_nodes, number_edges, offset);
+    dgraph_compute_size(edgelist, number_nodes, number_edges, offset);
 
     //cout << "[DG-LOAD]: Initializing the direct graph" << endl;
     //Initialize graph with the obtained size of the graph
@@ -125,7 +133,7 @@ DGraph* dgraph_load_graph(vector<pair<long,long> >* vgraph){
 
     //cout << "[DG-LOAD]: Computing degree array" << endl;
     //Compute degree of each node
-    dgraph_compute_degree_array(graph, vgraph);
+    dgraph_compute_degree_array(graph, edgelist);
 
     //cout << "[DG-LOAD]: Setting nodes of the direct graph" << endl;
     //Set indexes of each node
@@ -133,7 +141,7 @@ DGraph* dgraph_load_graph(vector<pair<long,long> >* vgraph){
 
     //cout << "[DG-LOAD]: Loading data" << endl;
     //Load data onto the data structure
-    dgraph_load_data(graph, vgraph);
+    dgraph_load_data(graph, edgelist);
 
     //cout << "[DG-LOAD]: Resulting graph: " << endl;
     //dgraph_print(graph);
@@ -141,105 +149,15 @@ DGraph* dgraph_load_graph(vector<pair<long,long> >* vgraph){
     return graph;
 }
 
-/**
- * Configure the graph and load data from file
- * @param name file name
- * @return
- */
-DGraph* dgraph_load_file(char* name){
-    fstream input;
-    DGraph* graph;
-    long number_nodes=0;
-    long number_edges=0;
-    long offset = 0;
-
-    input.open(name);
-
-    //If the file can't be opened, return false
-    if(!input)
-        return NULL;
-
-    //Compute size of the graph and get the offset between the index for arrays and the ID of nodes
-    dgraph_compute_size_from_file(input, number_nodes, number_edges, offset);
-
-    //Initialize graph with the obtained size of the graph
-    graph = dgraph_init(number_nodes, number_edges, offset);
-
-    //Compute degree of each node
-    dgraph_compute_degree_array_from_file(graph, input);
-
-    //Set indexes of each node
-    dgraph_set_nodes(graph);
-
-    //Load data onto the data structure
-    dgraph_load_data_from_file(graph, input);
-
-    input.close();
-
-    return graph;
-}
-
-/**
- * Add edge to the graph (in one directions A-->B, not B-->A)
- * @param node
- * @param neighbour
- * @return
- */
-bool dgraph_add_edge_in(DGraph* graph, long node, long neighbour){
-    ////cout << "Adding IN " << node << " " << neighbour << endl;
-    //If arrays are not initialized or node is the same as the given neighbour, then stop the function
-    if(graph->graph_in == NULL || graph->neighbours_in == NULL || node == neighbour)
-        return false;
-
-    //Get correct index of the node
-    long index = node;
-
-    //Get first index of node's neighbours
-    long first_neighbour = graph->graph_in[index];
-
-    long weight = 1;
-
-    ////cout << "Starting loop" << endl;
-    //Search the correct position of the given neighbour
-    for(int i=first_neighbour;i<graph->graph_degree_in[index]+first_neighbour;i++){
-        //If edge already exists, return false (not added)
-        if(graph->neighbours_in[i] == neighbour){
-            //graph->graph_degree_in[node] -= 1; //Duplicate, then I reduce the degree
-            ////cout << "Neighbor " << neighbour << " existing, increasing +1 the weight " << graph->neighbours_in_weight[i] << endl;
-            graph->neighbours_in_weight[i]++;
-            graph->graph_degree_in[node]--;
-            graph->weight_in_sum[node]++;
-            return true;
-        }
 
 
-        //If empty spot, then assign the neighbour and stop the function
-        if(graph->neighbours_in[i] < 0) {
-            ////cout << "Adding the neighbor " << neighbour << " in position: " << i << endl;
-            graph->neighbours_in[i] = neighbour;
-            graph->neighbours_in_weight[i] = weight;
-            graph->weight_in_sum[node]++;
-            return true;
-        }
-
-        //Keep array ordered, therefore swap the given neighbour with the least bigger neighbour node (?)
-        //After that, arrays elements must be fixed to their new places
-        if(graph->neighbours_in[i] > neighbour){
-            ////cout << "Swapping " << graph->neighbours_in[i] << " (" << graph->neighbours_in_weight[i] << ") with " << neighbour << " (" << weight << ")" << endl;
-            swap(graph->neighbours_in[i], neighbour);
-            swap(graph->neighbours_in_weight[i], weight);
-        }
-    }
-    //Element not inserted into the array, is space finished?
-    return false;
-}
 
 /**
  * Compute the array with the degree of each node
  * @param file
  * @return
  */
-bool dgraph_compute_degree_array(DGraph* graph, vector<pair<long,long> >* vgraph){
+bool dgraph_compute_degree_array(DGraph* graph, DEdgelist* edgelist){
     ////cout << "[DGRAPH-DEGREE]: Prechecks" << endl;
     //If array for the graph degree is not initialized, return false
     if(graph->graph_degree_in == NULL && graph->graph_degree_out == NULL)
@@ -249,9 +167,9 @@ bool dgraph_compute_degree_array(DGraph* graph, vector<pair<long,long> >* vgraph
     long nodeB;
 
     ////cout << "[DGRAPH-DEGREE]: Running throw the edge list" << endl;
-    for(int i=0; i<vgraph->size(); i++){
-        nodeA = vgraph->at(i).first - graph->offset;
-        nodeB = vgraph->at(i).second - graph->offset;
+    for(int i=0; i<edgelist->size(); i++){
+        nodeA = edgelist->at(i)->nodeA - graph->offset;
+        nodeB = edgelist->at(i)->nodeB - graph->offset;
 
         ////cout << "[DGRAPH-DEGREE]: Nodes = " << nodeA << ", " << nodeB << endl;
 
@@ -272,92 +190,13 @@ bool dgraph_compute_degree_array(DGraph* graph, vector<pair<long,long> >* vgraph
 }
 
 /**
- * Compute the array with the degree of each node
- * @param file
- * @return
- */
-bool dgraph_compute_degree_array_from_file(DGraph* graph, fstream &file){
-    //If array for the graph degree is not initialized, return false
-    if(graph->graph_degree_in == NULL && graph->graph_degree_out == NULL)
-        return false;
-
-    dgraph_file_reset(file);
-
-    long nodeA;
-    long nodeB;
-
-    while(file>>nodeA>>nodeB){
-        nodeA -= graph->offset;
-        nodeB -= graph->offset;
-
-        //If nodeA is different from nodeB, then increase the degree of the nodeA
-        if(nodeA != nodeB) {
-            graph->graph_degree_out[nodeA]++;
-            graph->graph_degree_in[nodeB]++;
-        }
-    }
-
-    return true;
-}
-
-/**
- * Add edge to the graph (in one directions A-->B, not B-->A)
- * @param node
- * @param neighbour
- * @return
- */
-bool dgraph_add_edge_out(DGraph* graph, long node, long neighbour){
-    ////cout << "[DGRAPH_ADD_OUT]: Precheks!" << endl;
-    //If arrays are not initialized or node is the same as the given neighbour, then stop the function
-    if(graph->graph_out == NULL || graph->neighbours_out == NULL || node == neighbour)
-        return false;
-
-    //Get correct index of the node
-    long index = node;
-
-    //Get first index of node's neighbours
-    long first_neighbour = graph->graph_out[index];
-    ////cout << "[DGRAPH_ADD_OUT]: Adding " << node << " and " << neighbour << endl;
-    ////cout << "[DGRAPH_ADD_OUT]: First neighbor index = " << first_neighbour << " and last neighbor index = " << graph->graph_degree_out[index]+first_neighbour - 1 << endl;
-    //Search the correct position of the given neighbour
-    for(int i=first_neighbour;i<graph->graph_degree_out[index]+first_neighbour;i++){
-        ////cout << "[DGRAPH_ADD_OUT]: Checking neighbour of " << node << ": " << graph->neighbours_out[i] << endl;
-        //If edge already exists, return false (not added)
-        if(graph->neighbours_out[i] == neighbour){
-            //graph->graph_degree_out[node] -= 1; //Duplicate, then I reduce the degree
-            graph->neighbours_out_weight[i]++;
-            graph->graph_degree_out[node]--;
-            graph->weight_out_sum[node]++;
-            return true;
-        }
-
-
-        //If empty spot, then assign the neighbour and stop the function
-        if(graph->neighbours_out[i] < 0) {
-            graph->neighbours_out[i] = neighbour;
-            graph->neighbours_out_weight[i] = 1;
-            graph->weight_out_sum[node]++;
-            return true;
-        }
-
-        //Keep array ordered, therefore swap the given neighbour with the least bigger neighbour node (?)
-        //After that, arrays elements must be fixed to their new places
-        if(graph->neighbours_out[i] > neighbour){
-            swap(graph->neighbours_out[i], neighbour);
-        }
-    }
-    //Element not inserted into the array, is space finished?
-    return false;
-}
-
-/**
  * Compute the size of the graph by looking the ID of nodes and the number of rows (without considering self loops)
  * It may count more edges, in this case some space will be allocated but not used
  * @param file
  * @return
  */
-bool dgraph_compute_size(vector<pair<long,long> >* vgraph, long &number_nodes, long &number_edges, long &offset){
-    if(vgraph == NULL)
+bool dgraph_compute_size(DEdgelist* edgelist, long &number_nodes, long &number_edges, long &offset){
+    if(edgelist == NULL)
         return false;
 
     ////cout << "[DG-SIZE]: Defining variables" << endl;
@@ -369,10 +208,10 @@ bool dgraph_compute_size(vector<pair<long,long> >* vgraph, long &number_nodes, l
     long max_id = 0;
 
     ////cout << "[DG-SIZE]: Foreach pair in the graph" << endl;
-    for(int i=0; i<vgraph->size(); i++) {
+    for(int i=0; i<edgelist->size(); i++) {
         ////cout << "[DG-SIZE]: Select 2 nodes" << endl;
-        nodeA = vgraph->at(i).first;
-        nodeB = vgraph->at(i).second;
+        nodeA = edgelist->at(i)->nodeA;
+        nodeB = edgelist->at(i)->nodeB;
         ////cout << "[DG-SIZE]: NodeA="<<nodeA<<" NodeB="<< nodeB << endl;
 
         ////cout << "[DG-SIZE]: Check if they are different" << endl;
@@ -395,43 +234,6 @@ bool dgraph_compute_size(vector<pair<long,long> >* vgraph, long &number_nodes, l
     return true;
 }
 
-/**
- * Compute the size of the graph by looking the ID of nodes and the number of rows (without considering self loops)
- * It may count more edges, in this case some space will be allocated but not used
- * @param file
- * @return
- */
-bool dgraph_compute_size_from_file(fstream &file, long &number_nodes, long &number_edges, long &offset){
-    if(!file)
-        return false;
-
-    dgraph_file_reset(file);
-
-    long nodeA;
-    long nodeB;
-
-    long min_id = LONG_MAX;
-    long max_id = 0;
-
-    // Count how many couples there are in the file
-    while(file>>nodeA>>nodeB){
-
-        if(nodeA!=nodeB)
-            number_edges+=1;
-
-        nodeA < min_id ? min_id = nodeA : NULL;
-        nodeB < min_id ? min_id = nodeB : NULL;
-
-        nodeA > max_id ? max_id = nodeA : NULL;
-        nodeB > max_id ? max_id = nodeB : NULL;
-    }
-
-    number_nodes = max_id - min_id + 1;
-    number_edges = number_edges;
-    offset = min_id;
-
-    return true;
-}
 
 /**
  * Print the edges of the graph without duplicates or self loops
@@ -490,78 +292,31 @@ void dgraph_swap(long &a, long &b){
     b = tmp;
 }
 
-/**
- * Bring the file pointer to the beginning
- * @param file
- */
-void dgraph_file_reset(fstream &file){
-    file.clear();
-    file.seekg(0, file.beg);
-}
 
 /**
  * Load the whole file into the structure
  * @param file
  * @return
  */
-bool dgraph_load_data(DGraph* graph, vector<pair<long,long> >* vgraph){
+bool dgraph_load_data(DGraph* graph, DEdgelist* edgelist){
     long nodeA;
     long nodeB;
-    ////cout << "[DG-LOADDATA]: Iterating" << endl;
-    for(int i=0; i<vgraph->size(); i++){
-        nodeA = vgraph->at(i).first - graph->offset;
-        nodeB = vgraph->at(i).second - graph->offset;
+    long weight;
+    for(int i=0; i<edgelist->size(); i++){
+        nodeA = edgelist->at(i)->nodeA - graph->offset;
+        nodeB = edgelist->at(i)->nodeB - graph->offset;
+        weight = edgelist->at(i)->weight;
 
-        ////cout << "[DG-LOADDATA]: Adding " << nodeA << " " << nodeB << endl;
+        fast_graph_add_edge_out(graph, nodeA, nodeB, weight);
 
-        ////cout << "Crash 1" << endl;
-        dgraph_add_edge_out(graph, nodeA, nodeB);
-        ////cout << "Crash 2" << endl;
-        dgraph_add_edge_in(graph, nodeA, nodeB);
-        ////cout << "Crash 3" << endl;
-        dgraph_add_edge_out(graph, nodeB, nodeA);
-        //out << "Crash 4" << endl;
-        dgraph_add_edge_in(graph, nodeB, nodeA);
-        ////cout << "Crash 5" << endl;
-
-        //fast_graph_add_edge_out(graph, nodeA, nodeB);
-        //fast_graph_add_edge_in(graph, nodeB, nodeA);
+        fast_graph_add_edge_out(graph, nodeB, nodeA, weight);
     }
 
     return true;
 }
 
-/**
- * Load the whole file into the structure
- * @param file
- * @return
- */
-bool dgraph_load_data_from_file(DGraph* graph, fstream &file){
-    dgraph_file_reset(file);
 
-    long nodeA;
-    long nodeB;
-
-    while(file>>nodeA>>nodeB){
-        nodeA -= graph->offset;
-        nodeB -= graph->offset;
-
-        ////cout << nodeA << " " << nodeB << endl;
-
-        //Direct graph --> I have to add the edge to one node
-        //graph_add_edge_out(graph, nodeA, nodeB);
-        //graph_add_edge_in(graph, nodeB, nodeA);
-
-        dgraph_add_edge_out(graph, nodeA, nodeB);
-        dgraph_add_edge_in(graph, nodeA, nodeB);
-        dgraph_add_edge_out(graph, nodeB, nodeA);
-        dgraph_add_edge_in(graph, nodeB, nodeA);
-    }
-
-    return true;
-}
-
-bool fast_graph_add_edge_out(DGraph* graph, long node, long neighbour){
+bool fast_graph_add_edge_out(DGraph* graph, long node, long neighbour, long weight){
     //If arrays are not initialized or node is the same as the given neighbour, then stop the function
     if(graph->graph_out == NULL || graph->neighbours_out == NULL || node == neighbour)
         return false;
@@ -572,25 +327,39 @@ bool fast_graph_add_edge_out(DGraph* graph, long node, long neighbour){
     long first_available_spot = graph->last_neighbor_out[node] + graph->graph_out[node];
 
     graph->neighbours_out[first_available_spot] = neighbour;
+    graph->neighbours_out_weight[first_available_spot] = weight;
+    graph->weight_out_sum[node] += weight;
 
     graph->last_neighbor_out[node]++;
 
     return true;
 }
 
-bool fast_graph_add_edge_in(DGraph* graph, long node, long neighbour){
-    //If arrays are not initialized or node is the same as the given neighbour, then stop the function
-    if(graph->graph_in == NULL || graph->neighbours_in == NULL || node == neighbour)
-        return false;
+// -------------
 
-    if(graph->last_neighbor_in[node] >= graph->graph_degree_in[node])
-        return false;
+DEdgelist* edgelist_init(){
+    return new DEdgelist();
+}
 
-    long first_available_spot = graph->last_neighbor_in[node] + graph->graph_in[node];
+void edgelist_deinit(DEdgelist* edgelist){
+    if(edgelist == NULL)
+        return;
 
-    graph->neighbours_in[first_available_spot] = neighbour;
+    for (int i = 0; i < edgelist->size(); ++i) {
+        dedge_deinit(edgelist->at(i));
+    }
 
-    graph->last_neighbor_in[node]++;
+    delete(edgelist);
+}
 
-    return true;
+DEdge* dedge_init(long nodeA, long nodeB, long weight){
+    DEdge* dEdge = new DEdge();
+    dEdge->nodeA = nodeA;
+    dEdge->nodeB = nodeB;
+    dEdge->weight = weight;
+    return dEdge;
+}
+
+void dedge_deinit(DEdge* dEdge){
+    delete dEdge;
 }

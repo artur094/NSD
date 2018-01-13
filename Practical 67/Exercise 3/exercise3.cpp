@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     cout << "Loading graph..." << endl;
 
     if (argc > 4)
-        alpha = atof(argv[3]);
+        alpha = atof(argv[4]);
 
     if(alpha > 1)
         alpha = 1;
@@ -37,10 +37,10 @@ int main(int argc, char** argv) {
         alpha = 0;
 
     if (argc > 3)
-        pagerank_iterations = atoi(argv[2]);
+        pagerank_iterations = atoi(argv[3]);
 
     if(argc > 2)
-        nr_comm = atol(argv[1]);
+        nr_comm = atol(argv[2]);
 
     if (argc > 1)
         graph = graph_load_file(argv[1]);
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
     cout << "Graph loaded!" << endl;
     // graph_print(graph);
-    cout << "Starting JCB Algorithm..."<<endl;
+    cout << "Starting JCB Algorithm to obtain at least " << nr_comm << " communities" <<endl;
     jackcomesback(graph, nr_comm, pagerank_iterations, alpha);
     cout << "JCK Algorithm done!" << endl;
 

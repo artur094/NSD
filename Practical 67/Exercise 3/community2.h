@@ -10,25 +10,20 @@
 using namespace std;
 
 struct Community {
-    Community* parent;
-    long node;
-    long degreeIn;
-    long degreeOut;
+    vector<long> array;
     long number_nodes;
+    double metric;
 };
 typedef struct Community Community;
 
-Community* community_find_boss(Community* community);
-
-Community* community_init(long node);
+Community* community_init();
 void community_deinit(Community* community);
 bool community_insert(Community* community, long node);
-void community_merge(Community* community, Community*  slave, long weight);
+void community_merge(Community* community, Community*  slave);
 bool community_contains(Community* community, long node);
 long community_first_greater_than(Community* community, long node);
 void community_print(Community* community);
-bool community_quality_function(Community* dst, Community* src, long weight);
-bool community_quality_function_edit_distance(Community* dst, Community* src, long weight);
+
 
 
 #endif //NSD_CLUSTER_H

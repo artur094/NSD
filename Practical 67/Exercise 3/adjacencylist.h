@@ -73,7 +73,7 @@ void graph_sort_new_neighbor(Graph* graph, long node, long neighbor_index);
 
 void swap_vector(vector<long>* array, long index1, long index2);
 
-bool graph_merge_communities(Graph* graph, long v, long u);
+bool graph_merge_communities(Graph* graph, long v, long u, long weight);
 bool graph_load_data(Graph* graph, Edgelist* edgelist);
 
 long graph_count_triangles_node(Graph* graph, long node);
