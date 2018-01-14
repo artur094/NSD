@@ -8,7 +8,7 @@ set terminal png size 1200,900 enhanced font "Helvetica" 14
 #INTERCONTACT
 
 set title 'InterContact Duration Distribution'
-#set ylabel 'Number of intercontact'
+set ylabel 'Number of intercontact'
 set xlabel 'Intercontact Duration'
 set logscale y 10
 set logscale x 10
@@ -21,7 +21,7 @@ plot 'intercontacts.txt' using 1:2 with points ls 1
 replot
 
 set title 'InterContact Duration Cumulative Distribution'
-#set ylabel 'Cumulative number of intercontacts'
+set ylabel 'Cumulative number of intercontacts'
 set xlabel 'Intercontact Duration'
 set logscale y 10
 set logscale x 10
@@ -34,7 +34,7 @@ plot 'cumulative_intercontacts.txt' using 1:2 with points ls 1
 replot
 
 set title 'Average Degree Distribution'
-#set ylabel 'Average degree'
+set ylabel 'Average degree'
 set xlabel 'Iteration (time)'
 set logscale y 10
 set logscale x 10
@@ -47,7 +47,7 @@ plot 'avg_degree.txt' using 1:2 with points ls 1
 replot
 
 set title 'Created Links'
-#set ylabel 'Fraction of created links'
+set ylabel 'Fraction of created links'
 set xlabel 'Iteration (time)'
 set logscale y 10
 set logscale x 10
@@ -60,7 +60,7 @@ plot 'links_fractions.txt' using 1:2 with points ls 1
 replot
 
 set title 'Deleted Links'
-#set ylabel 'Fraction of deleted links'
+set ylabel 'Fraction of deleted links'
 set xlabel 'Iteration (time)'
 set logscale y 10
 set logscale x 10
@@ -73,7 +73,7 @@ plot 'links_fractions.txt' using 1:3 with points ls 1
 replot
 
 set title 'Diameter'
-#set ylabel 'Diameter lenght'
+set ylabel 'Diameter lenght'
 set xlabel 'Iteration (time)'
 set logscale y 10
 set logscale x 10
