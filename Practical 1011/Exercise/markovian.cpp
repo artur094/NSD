@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     markovian_to_file(argv[1], number_nodes, iterations, prob_creation, prob_deletion);
 
     cout << "Running proposed markovian with probability of creation="<<prob_creation << ", deletion mean=" << deletion_mean << " and deletion variance=" << deletion_variance << endl;
-    markovian_proposal_to_file("markovian_proposal_1.txt", number_nodes, iterations, prob_creation, deletion_mean, deletion_variance);
+    markovian_proposal_to_file("markovian_proposal.txt", number_nodes, iterations, prob_creation, deletion_mean, deletion_variance);
     cout << "Done!" << endl;
 
 

@@ -441,7 +441,7 @@ double markovian_creation_popularity(double probability, long degreeA, long degr
     double avg_degree = ((double)degreeA + (double)degreeB)/2.0;
     long total_edges = number_nodes*(number_nodes-1)*0.5;
 
-    return (probability + (1-probability)*(avg_degree/(double)total_edges)*probability;
+    return (probability + (1-probability)*(avg_degree/(double)total_edges))*probability;
 }
 
 void markovian_proposal_to_file(string filename, long number_nodes, long iterations, double creation_prob, double deletion_mean, double deletion_variance ){
