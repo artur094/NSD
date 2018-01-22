@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "community.h"
+#include "community_opt.h"
 
 Community* community_init(long node){
     //cout << "Initializing community"<< endl;
