@@ -522,8 +522,11 @@ void graph_communities_to_file(Graph* graph, char* filename){
     //cout << "[GR-COMM-FILE] Iterating on all nodes. If node-id > 0 then it is still a community" << endl;
     for (int i = 0; i < graph->number_nodes; ++i) {
         long comm_id = community_find_boss(graph->nodes[i].community)->node;
+        string str_nodes =
+        vector<long> community;
 
-        input << i + graph->offset << " " << comm_id << endl;
+
+        //input << i + graph->offset << " " << comm_id << endl;
     }
 
     //cout << "[GR-COMM-FILE] Closing file" << endl;

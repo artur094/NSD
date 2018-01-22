@@ -31,11 +31,11 @@ Heap* heap_init(Graph* graph){
 // a<b => min heap
 // a>b => max heap
 bool heap_condition(Item a, Item b){
-    if(a.max_weight > b.max_weight){
+    if(a.max_weight > b.max_weight){ //max weight between all outgoing weights
         return true;
     }
     if(a.max_weight == b.max_weight){
-        return a.weight > b.weight;
+        return a.weight > b.weight; //sum of all links' weight
     }
     return false;
 }

@@ -2,28 +2,28 @@
 // Created by Ivan Morandi on 20/12/2017.
 //
 
-#ifndef NSD_CLUSTER_H
-#define NSD_CLUSTER_H
+#ifndef NSD_COMMUNITY_H
+#define NSD_COMMUNITY_H
 
 #include <vector>
 
 using namespace std;
 
+//IMPORTANT: ALL NODES ARE COMMUNITIES!!!
 struct Community {
-    vector<long> array;
-    long number_nodes;
-    double metric;
+    long ID;
+    vector<long> nodes;
+    vector<long> neighbours; //just one node representing the community
+    vector<long> neighbours_comm; //community ID of the node
+    vector<long> neighbours_weight; //weight to reach the community (sum of links)
+    vector<long> neighbours_triangle; //intersection between communities
+
+    long number_neighbour;
+    long number_triangles;
+    double pr_value; //pagerank
+    long inEdges; //edges inside the community
+    long outEdges; //edges going outside the community
 };
 typedef struct Community Community;
 
-Community* community_init();
-void community_deinit(Community* community);
-bool community_insert(Community* community, long node);
-void community_merge(Community* community, Community*  slave);
-bool community_contains(Community* community, long node);
-long community_first_greater_than(Community* community, long node);
-void community_print(Community* community);
-
-
-
-#endif //NSD_CLUSTER_H
+#endif //NSD_COMMUNITY_H

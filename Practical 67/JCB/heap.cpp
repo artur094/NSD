@@ -7,20 +7,17 @@
 
 using namespace std;
 
-//TODO: fix heap!!!
-
 Heap* heap_init(Graph* graph){
     Heap* heap = new Heap();
     heap->heap = new Item[graph->number_nodes];
     heap->node_indexes = new long[graph->number_nodes];
     heap->length = graph->number_nodes;
     heap->graph = graph;
+    heap->pointer = 0;
 
     for (int i = 0; i < graph->number_nodes; ++i) {
         heap->heap[i].node = i;
         heap->heap[i].degree = graph->nodes[i].degree;
-        heap->heap[i].weight = graph_get_sum_weight(graph, i);
-        heap->heap[i].max_weight = graph_get_max_weight(graph, i);
         heap->node_indexes[i] = i;
     }
 
@@ -31,11 +28,8 @@ Heap* heap_init(Graph* graph){
 // a<b => min heap
 // a>b => max heap
 bool heap_condition(Item a, Item b){
-    if(a.max_weight > b.max_weight){ //max weight between all outgoing weights
+    if(a.degree < b.degree){ //max weight between all outgoing weights
         return true;
-    }
-    if(a.max_weight == b.max_weight){
-        return a.weight > b.weight; //sum of all links' weight
     }
     return false;
 }
@@ -58,63 +52,43 @@ long heap_first_element(Heap* heap){
     return heap->heap[0].node;
 }
 
-void heap_restore(Heap* heap){
-    heap_build(heap);
+long heap_pointer_next(Heap* heap){
+    if(heap == NULL)
+        return -1;
+    if(heap->pointer >= heap->length)
+        return -1;
+    if(heap->pointer < 0)
+        return -1;
+
+    long node = heap->heap[heap->pointer].node;
+    heap->pointer++;
+
+    return node;
 }
 
-void heap_remove_node(Heap* heap,Graph* graph, long node){
-    if(heap == NULL)
+void heap_fix(Heap* heap, Graph* graph){
+    if(heap == NULL || graph == NULL)
         return;
 
-    long index = heap->node_indexes[node];
+    heap->pointer = 0;
 
-    //move the node at the end
-    long last_node = heap->heap[heap->length - 1].node;
-    swap_item(heap->heap[index], heap->heap[heap->length-1]);
-    heap->node_indexes[node] = heap->length-1;
-    heap->node_indexes[last_node] = index;
+    for (int i = 0; i < heap->length; ++i) {
+        long node = heap->heap[i].node;
+        if(graph->nodes[node].community->ID != node){
+            long last = heap->length-1;
 
-    heap->node_indexes[node] = heap->length-1;
-    heap->length--;
-
-    //cout << "After removing node: " << endl;
-    //heap_print(heap);
-    //cout << endl << "After restore: " << endl;
-
-    heap_bubble_down(heap, 0);
-
-    //fix neighbours
-    for (int i = 0; i < graph->nodes[node].degree; ++i) {
-        long neighbour = graph->nodes[node].neighbours[i];
-        long index_neighbour = heap->node_indexes[neighbour];
-
-        if(index_neighbour < heap->length){
-//            cout << "Before reducing degree of neighbour: "<< neighbour <<endl;
-//            heap_print(heap);
-            Item tmp;
-            tmp.degree = heap->heap[index_neighbour].degree;
-            tmp.weight = heap->heap[index_neighbour].weight;
-            tmp.max_weight = heap->heap[index_neighbour].max_weight;
-
-            heap->heap[index_neighbour].degree = graph->nodes[neighbour].degree;
-            heap->heap[index_neighbour].weight = graph_get_sum_weight(graph, neighbour);
-            heap->heap[index_neighbour].max_weight = graph_get_max_weight(graph, neighbour);
-            //heap->heap[index_neighbour].degree = graph
-
-//            cout << "After reducing degree of neighbour: "<< neighbour <<endl;
-//            heap_print(heap);
-//            cout << endl << "After restoring bottom-up the heap:"<<endl;
-            if(heap_condition(tmp, heap->heap[index_neighbour])) {
-                heap_bubble_down(heap, index_neighbour);
-            }
-            else {
-                heap_bubble_up(heap, index_neighbour);
-            }
-            //heap_print(heap);
+            heap->node_indexes[heap->heap[i].node] = last;
+            heap->node_indexes[heap->heap[last].node] = i;
+            swap_item(heap->heap[i], heap->heap[last]);
+            heap->length--;
         }
     }
 
-    //heap_restore(heap);
+    heap_restore(heap);
+}
+
+void heap_restore(Heap* heap){
+    heap_build(heap);
 }
 
 bool heap_is_empty(Heap* heap){
@@ -183,7 +157,7 @@ void heap_build(Heap* heap){
 
 void heap_print(Heap* heap){
     for (int i = 0; i < heap->length; ++i) {
-        cout << heap->heap[i].node<< " degree=" << heap->heap[i].degree << ", weight=" << heap->heap[i].weight << ", max weight=" << heap->heap[i].max_weight
+        cout << heap->heap[i].node<< " degree=" << heap->heap[i].degree
              << " in pos " << heap->node_indexes[heap->heap[i].node] << " --> ID in that pos = " << heap->heap[heap->node_indexes[heap->heap[i].node]].node << endl;
     }
 }

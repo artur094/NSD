@@ -3,7 +3,9 @@
 //
 
 #include <iostream>
-#include "community_opt.h"
+#include "community.h"
+
+using namespace std;
 
 Community* community_init(long node){
     //cout << "Initializing community"<< endl;
@@ -15,6 +17,7 @@ Community* community_init(long node){
     comm->node = node;
     comm->parent = NULL;
     comm->number_nodes = 1;
+    comm->nodes = to_string(node);
     //cout << "Returning community" << endl;
     return comm;
 }
@@ -43,6 +46,7 @@ void community_merge(Community* dst, Community*  source, long weight){
     dst->degreeOut += source->degreeOut - 2; //remove the old degree out
     dst->degreeIn += source->degreeIn + weight;
     dst->number_nodes += source->number_nodes;
+    dst->nodes += " " + source->nodes;
 }
 
 bool community_quality_function(Community* dst, Community* src, long weight){

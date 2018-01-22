@@ -1,247 +1,165 @@
-//
-// Created by Ivan Morandi on 22/12/2017.
-//
-
 #include <vector>
 #include <utility>
 #include <cstdlib>
-#include <ctime>
-#include "adjacencylist.h"
-#include "directed_adjacencylist.h"
-#include "heap.h"
 #include "jackcomesback.h"
+#include "adjacencylist.h"
+#include "community.h"
+#include "community_functions.h"
+#include "heap.h"
 
 
+using namespace std;
 
-void jackcomesback(Graph* graph, long number_communities, int pagerank_iterations, double pagerank_alpha){
-    //TODO: FIX REORDERING USING HEAP (#degree * #weight)
+//start from nodes with slowest degree
+void jackcomesback(Graph* graph, string filename, long iterations, double alpha){
+    //Initialization
+    cout << "[JCB] Initializing the environment" << endl;
+    page_rank(graph, alpha, iterations);
+    graph_compute_triangles(graph);
+    graph_fix_communities(graph);
+
     Heap* heap = heap_init(graph);
     heap_restore(heap);
-    srand(time(NULL));
 
-    while (!heap_is_empty(heap) && number_communities < graph->number_communities){
-        cout << "Number communities = " << graph->number_communities << endl;
-        //out << "[JCB]: Getting best community from this heap:" << endl;
+    bool merged = true;
+    long community;
+    long jcb_it = 0;
+
+    //Start to iterate
+    while(merged){
+        merged = false;
+        cout << "[JCB] Iteration " << jcb_it++ << endl;
+        while ((community = heap_pointer_next(heap)) >= 0){
+            if(graph->nodes[community].community->ID != community)
+                continue;
+            if(graph->nodes[community].community->number_neighbour <= 0)
+                continue;
+
+            cout << "[JCB]: Checking community " << community << endl;
+
+            if(jackcomesback_iteration(graph, heap, community))
+                merged = true;
+        }
+        cout << "[JCB]: Fixing heap" << endl;
+        heap_fix(heap, graph);
         //heap_print(heap);
-
-        long community = heap_first_element(heap);
-        //cout << "Best community = " << community << " with following nodes: ";
-        //community_print(graph->nodes[community].community);
-
-        //If the community is not connected to anyone else
-        if(graph->nodes[community].degree <= 0){
-            heap_remove_node(heap, graph, community);
-            continue;
-        }
-
-        ////cout << "Selected community " << community << " with the following nodes: " ;
-        //community_print(graph->nodes[community].community);
-
-        //cout << "Neighbours of selected community: ";
-        //graph_print_array(graph, community);
-
-        //cout << "[JCB]: Starting JCB Iteration" << endl;
-        jcb_iteration(graph, heap, community, pagerank_iterations, pagerank_alpha);
-
-        //cout << "[JCB]: Done JCB Iteration" << endl;
-        //cout << "[JCB]: New community " << community << ": ";
-        //community_print(graph->nodes[community].community);
-        //cout << "[JCB]: Neighbours = ";
-        //graph_print_array(graph, community);
-
-        //cout << "[JCB]: New graph:" << endl;
-        //graph_print(graph);
     }
+
+    jackcomesback_communities_to_file(filename, graph);
 }
 
-void jcb_iteration(Graph* graph, Heap* heap, long node, int pagerank_iterations, double pagerank_alpha){
-    cout << "[JCBIT]: Remaining communities = " << heap->length << endl;
-    cout << "[JCBIT]: Degree of " << node << " = " << graph->nodes[node].degree << endl;
+//True if there is a merge
+//False otherwise
+bool jackcomesback_iteration(Graph* graph, Heap* heap, long node){
+    //recompute 1 iteration of pagerank only on this node O(n)
+    jackcomesback_fix_pr(graph, node);
 
-    long best_neighbor;
-    long start_time;
+    //find the best neighbour using the function jackcomesback_best_neighbour
+    long best_neighbour = jackcomesback_best_neighbour(graph, node);
 
-    start_time = time(NULL);
-    DEdgelist* vgraph = jcb_neighbours_d2(graph, node);
-    cout << "[JCBIT]: Computed triangles in " << time(NULL) - start_time << endl;
-
-    if(vgraph != NULL && !vgraph->empty()){
-        start_time = time(NULL);
-        DGraph* dgraph = dgraph_load_graph(vgraph);
-        cout << "[JCBIT]: Builded subgraph in " << time(NULL) - start_time << endl;
-
-        edgelist_deinit(vgraph);
-
-        jcb_fix_dgraph_node_weight(graph, dgraph, node);
-
-        start_time = time(NULL);
-
-        best_neighbor = jcb_node_max_page_rank(graph, dgraph, node, pagerank_iterations, pagerank_alpha);
-        cout << "[JCBIT]: Computed Page Rank in " << time(NULL) - start_time << endl;
-
-        dgraph_deinit(dgraph);
+    if(best_neighbour < 0){
+        //no best neighbour
+        //cout << "[JCB-IT] Not merged" << endl;
+        return false;
     }
-    else{
-        if(vgraph != NULL)
-            delete vgraph;
-
-        if(graph->nodes[node].degree <= 0)
-        {
-            //NO NEIGHBOURS
-            heap_remove_node(heap, graph, node);
-            //i can't merge it
-            return;
-        }
-
-        best_neighbor = graph->nodes[node].neighbours[rand() % graph->nodes[node].degree];
+    if(graph->nodes[best_neighbour].community->ID == graph->nodes[node].community->ID){
+        //cout << "[ERROR] Merging the same community" << endl;
+        return false;
     }
 
-    //Optimization based on the degree
-    if(graph->nodes[best_neighbor].degree > graph->nodes[node].degree){
-        long tmp = best_neighbor;
-        best_neighbor = node;
-        node = tmp;
-    }
+    //cout << "[JCB-IT] Merging " << node << " " << best_neighbour << endl;
+    graph_merge(graph, node, best_neighbour);
 
-
-
-    //now merge the node with the neighbor
-    start_time = time(NULL);
-    long pos = graph_get_edge(graph, node, best_neighbor);
-    long weight = graph->nodes[node].weight[pos];
-
-    cout << "[JCBIT] Merging " << node << " " << best_neighbor << endl;
-    if(community_quality_function(graph->nodes[node].community, graph->nodes[best_neighbor].community, weight))
-        graph_merge_communities(graph, node, best_neighbor, weight);
-
-    //cout << "[JCBIT]: Removing from heap the best neighbor " << best_neighbor << endl;
-    heap_remove_node(heap, graph, best_neighbor);
-    cout << "[JCBIT]: JCB in " << time(NULL) - start_time << endl;
+    return true;
 }
 
-//another way to get triangles
-DEdgelist* jcb_neighbours_d2(Graph* graph, long node){
+// get PR of each neighbour and multiply it for the weight of links between communities and multiply it by:
+// the ratio of intersection over total degree if merged
+// -1 if can't be merged
+long jackcomesback_best_neighbour(Graph* graph, long node){
+    //PR and weights are already computed
+    Community* community = graph->nodes[node].community;
+
+    long* intersections = new long[community->number_neighbour];
+    long* triangles_to_comm = new long[community->number_neighbour];
+
+    long final_comm = -1;
+
+    double max = 0.0;
+    long index_max = 0;
+    double val = 0.0;
+
+    for (int i = 0; i < community->neighbours.size(); ++i) {
+        triangles_to_comm[i] = community_get_numbers_triangle_to_comm(graph, community, graph->nodes[community->neighbours[i]].community);
+        intersections[i] = community_get_intersections(community, graph->nodes[community->neighbours[i]].community);
+        val = community_get_merge_value(community,graph->nodes[community->neighbours[i]].community, intersections[i], triangles_to_comm[i]);
+
+        if(val > max){
+            max = val;
+            index_max = i;
+        }
+    }
+
+    //cout << "[JCB-BN]: Checking " << node << " with " << graph->nodes[community->neighbours[index_max]].id << endl;
+
+    if(community_quality_function(community,graph->nodes[community->neighbours[index_max]].community, intersections[index_max], triangles_to_comm[index_max]) &&
+            community_quality_function(graph->nodes[community->neighbours[index_max]].community, community, intersections[index_max], triangles_to_comm[index_max]))
+        final_comm = community->neighbours[index_max];
+
+    delete [] intersections;
+    delete [] triangles_to_comm;
+
+    return final_comm;
+}
+
+void jackcomesback_fix_pr(Graph* graph, long node){
     if(graph == NULL)
-        return NULL;
-
-    DEdgelist* edgelist = edgelist_init();
-
-    for (int i = 0; i < graph->nodes[node].degree; ++i) {
-        long neighbour = graph->nodes[node].neighbours.at(i);
-
-
-        edgelist->push_back(dedge_init(node, neighbour,  graph->nodes[node].weight.at(i)));
-
-        for (int j = 0; j < graph->nodes[neighbour].degree; ++j) {
-            long neighbour_d2 = graph->nodes[neighbour].neighbours.at(j);
-            if(neighbour < neighbour_d2 && graph_contains_edge(graph, node, neighbour) && neighbour_d2 != node)
-                edgelist->push_back(dedge_init(neighbour, graph->nodes[neighbour].neighbours.at(j), graph->nodes[neighbour].weight.at(j)));
-        }
-    }
-
-    return edgelist;
-}
-
-void jcb_fix_dgraph_node_weight(Graph* graph, DGraph* dgraph, long nodeTarget){
-    if(graph == NULL || dgraph == NULL || nodeTarget < 0)
         return;
 
-    long neighbor;
-    long weight;
-    for (int i = 0; i < graph->nodes[nodeTarget].neighbours.size(); ++i) {
-        neighbor = graph->nodes[nodeTarget].neighbours[i];
-        weight = graph->nodes[nodeTarget].weight[i];
+    Community* comm = graph->nodes[node].community;
 
-        dgraph_set_node_weight(dgraph, neighbor, weight);
+    comm->pr_value = ALPHA * (1.0/(double)graph->number_nodes);
+
+    double prob_from_neighbours = 0;
+
+    for (int i = 0; i < comm->number_neighbour; ++i) {
+        long neighbour = comm->neighbours[i];
+
+        if(comm->ID != graph->nodes[neighbour].community->ID)
+            prob_from_neighbours += graph->nodes[neighbour].community->pr_value * (double)comm->neighbours_weight[i]/((double)graph->nodes[neighbour].community->outEdges);
     }
+
+    comm->pr_value += (1.0-ALPHA) * prob_from_neighbours;
 }
 
-long page_rank(DGraph* dgraph, long target, double alpha, int iterations){
-    double* P = new double[dgraph->number_nodes];
+void jackcomesback_communities_to_file(string name, Graph* graph){
+    if(graph == NULL)
+        return;
 
-    double probability_come_from_neighbour = 0;
-    double probability_of_teletrasport = 0;
-    double max_pagerank=-1;
-    long max_pagerank_index = -1;
+    fstream out;
+    out.open(name, ios::out);
 
-    target -= dgraph->offset;
-    P[target] = 1;
+    cout << "[JCB-FILE]: Storing file with communities..." << endl;
 
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        if(graph->nodes[i].community->ID != i)
+            continue;
 
-    long sum_node_weight = 0;
-    for (int i = 0; i < dgraph->number_nodes; ++i) {
-        sum_node_weight += dgraph->node_weight[i];
-    }
+        vector<long> copy = graph->nodes[i].community->nodes;
+        sort(copy.begin(), copy.begin()+copy.size());
 
-    for (int i = 0; i < dgraph->number_nodes; ++i) {
-        P[i] = (double)dgraph->node_weight[i]/(double)sum_node_weight;
+        //size
+        cout << "Size = " << copy.size() << " with nodes: ";
+        out << copy.size() << " ";
 
-        if(P[i] > max_pagerank && i != target){
-            max_pagerank = P[i];
-            max_pagerank_index = i;
+        //nodes
+        for (int j = 0; j < copy.size(); ++j) {
+            cout << copy[j] << ", ";
+            out << copy[j] << " ";
         }
+        cout << endl;
+        out << endl;
     }
 
-    for (int k = 0; k < iterations; ++k) {
-        max_pagerank = 0;
-        max_pagerank_index = -1;
-        for (long i = 0; i < dgraph->number_nodes; ++i) {
-            probability_of_teletrasport = 1/(double)dgraph->number_nodes;
-            probability_come_from_neighbour = 0;
-
-
-
-            for (long j = dgraph->graph_out[i]; j < dgraph->graph_out[i] + dgraph->graph_degree_out[i]; ++j) {
-                long neighbor = dgraph->neighbours_out[j];
-
-                if(dgraph->graph_degree_out[neighbor] > 0) {
-                    probability_come_from_neighbour +=
-                            ((double) dgraph->neighbours_out_weight[j] / (double) dgraph->weight_out_sum[neighbor]) * P[neighbor];
-                }
-            }
-
-            P[i] = (1.0-alpha) * probability_come_from_neighbour + alpha * probability_of_teletrasport;
-
-            if(P[i] > max_pagerank && i != target){
-                max_pagerank = P[i];
-                max_pagerank_index = i;
-            }
-        }
-    }
-    P[target] = 0;
-
-    delete [] P;
-
-    cout << "Best pagerank node: " << max_pagerank_index << endl;
-    return max_pagerank_index;
-}
-
-long jcb_node_max_page_rank(Graph* graph, DGraph* dgraph, long target, int pagerank_iterations, double pagerank_alpha){
-    if(dgraph == NULL)
-        return -1;
-
-    if(dgraph->number_nodes <= 0)
-        return -1;
-
-    return page_rank(dgraph, target, pagerank_alpha, pagerank_iterations) + dgraph->offset;
-}
-
-void jcb_print_edgelist(DEdgelist* edgelist){
-    for (int i = 0; i < edgelist->size(); ++i) {
-        cout << edgelist->at(i)->nodeA << " " << edgelist->at(i)->nodeB << " " << edgelist->at(i)->weight << endl;
-    }
-}
-
-void jcb_print_vector(vector<long>* v){
-    for (int i = 0; i < v->size(); ++i) {
-        //cout << v->at(i) << ", " ;
-    }
-    //cout << endl;
-}
-
-void jcb_print_array(long* array, long start, long end){
-    for (int i = start; i < end; ++i) {
-        //cout << array[i] << ", ";
-    }
-    //cout << endl;
+    out.close();
 }

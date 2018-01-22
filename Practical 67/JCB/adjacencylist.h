@@ -12,9 +12,9 @@
 #include <utility>
 #include "community.h"
 
-using namespace std;
+#define ALPHA 0.1
 
-/* - - - - - - - - - - - - - - - - - STRUCTS - - - - - - - - - - - - - - - - - - - - */
+using namespace std;
 
 struct Node{
     long id;
@@ -23,8 +23,8 @@ struct Node{
     Community* community;
     vector<long> neighbours;
     vector<long> weight;
+    vector<long> triangles_nodes;
 };
-typedef struct Node Node;
 
 struct Graph{
     long offset;
@@ -33,6 +33,11 @@ struct Graph{
     long number_communities;
     Node* nodes;
 };
+
+/* - - - - - - - - - - - - - - - - - STRUCTS - - - - - - - - - - - - - - - - - - - - */
+
+typedef struct Node Node;
+
 typedef struct Graph Graph;
 
 typedef vector<pair<long, long> > Edgelist;
@@ -48,7 +53,6 @@ bool graph_add_edge(Graph* graph, long node, long neighbour, long weight);
 void graph_print(Graph* graph);
 bool graph_add_edge(Graph* graph, long node, long neighbour);
 Graph* graph_load_file(char* name);
-void graph_print(Graph* graph);
 void graph_store_degree_file(char* filename, Graph* graph);
 void graph_store_file(char* filename, Graph* graph);
 
@@ -73,16 +77,19 @@ void graph_sort_new_neighbor(Graph* graph, long node, long neighbor_index);
 
 void swap_vector(vector<long>* array, long index1, long index2);
 
-bool graph_merge_communities(Graph* graph, long v, long u, long weight);
+void graph_merge(Graph* graph, long nodeA, long nodeB);
 bool graph_load_data(Graph* graph, Edgelist* edgelist);
 
 long graph_count_triangles_node(Graph* graph, long node);
 long graph_count_intersections(vector<long> array1, long length1, long start1, vector<long> array2, long length2, long start2);
 long graph_index_least_great_element(vector<long> array, long array_length, long value);
 
-long graph_get_max_weight(Graph* graph, long node);
-long graph_get_sum_weight(Graph* graph, long node);
+void page_rank(Graph* graph, double alpha, int iterations);
 
+void graph_set_triangles_node(Graph* graph, long node);
+
+void graph_print_communities(Graph* graph);
+void graph_fix_communities(Graph* graph);
 
 
 #endif //NSD_ADJACENCYLIST_H

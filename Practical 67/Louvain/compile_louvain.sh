@@ -1,0 +1,1 @@
+g++ main_louvain.cpp graph_binary.cpp louvain.cpp modularity.cpp zahn.cpp owzad.cpp goldberg.cpp condora.cpp devind.cpp devuni.cpp dp.cpp shimalik.cpp balmod.cpp quality.cpp

@@ -15,6 +15,7 @@ struct Community {
     long degreeIn;
     long degreeOut;
     long number_nodes;
+    string nodes;
 };
 typedef struct Community Community;
 

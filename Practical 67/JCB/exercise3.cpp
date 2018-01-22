@@ -7,10 +7,11 @@
 #include <ctime>
 #include <vector>
 #include <math.h>
-#include "adjacencylist2.h"
+#include "adjacencylist.h"
 #include "community.h"
-#include "directed_adjacencylist.h"
 #include "jackcomesback.h"
+
+#define FILENAME "jcb.txt"
 
 using namespace std;
 
@@ -24,7 +25,7 @@ int main(int argc, char** argv) {
 
     long nr_comm = 3;
     int pagerank_iterations = 50;
-    double alpha = 0;
+    double alpha = ALPHA;
 
     cout << "Loading graph..." << endl;
 
@@ -47,16 +48,7 @@ int main(int argc, char** argv) {
     else
         graph = graph_load_file("graph3.txt");
 
-    cout << "Graph loaded!" << endl;
-    // graph_print(graph);
-    cout << "Starting JCB Algorithm to obtain at least " << nr_comm << " communities" <<endl;
-    jackcomesback(graph, nr_comm, pagerank_iterations, alpha);
-    cout << "JCK Algorithm done!" << endl;
-
-    cout << "Storing communities into the file \'communities.txt\'" << endl;
-    graph_communities_to_file(graph, "communities.txt");
-
-    cout << "Done!" << endl;
+    jackcomesback(graph, FILENAME, pagerank_iterations, alpha);
 
     cout << "Deinit graph..." << endl;
     graph_deinit(graph);

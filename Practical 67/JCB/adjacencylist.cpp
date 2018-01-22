@@ -3,8 +3,10 @@
 #include <ctime>
 #include <vector>
 #include <utility>
-#include "adjacencylist.h"
 #include "community.h"
+#include "adjacencylist.h"
+#include "community_functions.h"
+
 
 using namespace std;
 
@@ -16,7 +18,6 @@ Graph* graph_init(long number_nodes, long offset){
     graph->number_nodes = number_nodes;
     graph->number_edges = 0;
     graph->offset = offset;
-    graph->number_communities = number_nodes;
 
     graph->nodes = new Node[graph->number_nodes];
 
@@ -24,9 +25,7 @@ Graph* graph_init(long number_nodes, long offset){
         graph->nodes[i].id = i;
         graph->nodes[i].degree = 0;
         graph->nodes[i].number_triangles = 0;
-        graph->nodes[i].community = community_init(i);
-        //cout << "insert " << i << " in comm" << endl;
-        //community_insert(graph->nodes[i].community, i);
+        graph->nodes[i].community = community_init(graph, i);
     }
 
     return graph;
@@ -35,11 +34,6 @@ Graph* graph_init(long number_nodes, long offset){
 void graph_deinit(Graph* graph){
     if(graph == NULL)
         return;
-
-    for (int i = 0; i < graph->number_nodes; ++i) {
-        if(graph->nodes[i].id >= 0)
-            delete graph->nodes[i].community;
-    }
 
     delete[](graph->nodes);
     delete(graph);
@@ -52,11 +46,7 @@ Graph* graph_load_file(char* name){
     fstream input_graph;
     input_graph.open(name);
 
-    if(!input_graph)
-        return NULL;
-
     Edgelist* edgelist = graph_file_to_edgelist(input_graph);
-
     graph = graph_load_edgelist(edgelist);
 
 
@@ -74,12 +64,12 @@ Graph* graph_load_edgelist(Edgelist* edgelist){
     long offset = 0;
 
     graph_compute_size(edgelist, number_nodes, number_edges, offset);
-
     graph = graph_init(number_nodes, offset);
-
-    //graph_compute_degree(graph, edgelist);
-
     graph_load_data(graph, edgelist);
+
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        community_set_node(graph, graph->nodes[i].community);
+    }
 
     return graph;
 }
@@ -87,12 +77,7 @@ Graph* graph_load_edgelist(Edgelist* edgelist){
 Graph* graph_load_edgelist(Edgelist* edgelist, long number_nodes, long offset){
     Graph* graph;
 
-    //graph_compute_size(edgelist, number_nodes, number_edges, offset);
-
     graph = graph_init(number_nodes, offset);
-
-    //graph_compute_degree(graph, edgelist);
-
     graph_load_data(graph, edgelist);
 
     return graph;
@@ -104,9 +89,7 @@ Edgelist* graph_file_to_edgelist(fstream &file){
     long nodeA;
     long nodeB;
 
-    while(file>>nodeA){
-        file>>nodeB;
-
+    while(file>>nodeA>>nodeB){
         edgeslist->push_back(make_pair(nodeA, nodeB));
     }
 
@@ -124,7 +107,6 @@ bool graph_compute_size(Edgelist* edgelist, long &number_nodes, long &number_edg
     long min_id = LONG_MAX;
     long max_id = 0;
 
-    // Count how many couples there are in the file
     for(int i=0;i<edgelist->size();i++){
         nodeA = edgelist->at(i).first;
         nodeB = edgelist->at(i).second;
@@ -147,7 +129,6 @@ bool graph_compute_size(Edgelist* edgelist, long &number_nodes, long &number_edg
 }
 
 bool graph_compute_degree(Graph* graph, Edgelist* edgelist){
-    //If array for the graph degree is not initialized, return false
     if(graph == NULL)
         return false;
 
@@ -205,21 +186,13 @@ bool graph_add_edge(Graph* graph, long node, long neighbour, long weight){
         return false;
     }
 
-
     int i=0;
-    //TODO: change using binary search
     for (i = 0; i < graph->nodes[node].degree && graph->nodes[node].neighbours[i] <= neighbour; ++i);
 
     graph->nodes[node].neighbours.insert(graph->nodes[node].neighbours.begin()+i, neighbour);
     graph->nodes[node].weight.insert(graph->nodes[node].weight.begin()+i, weight);
     graph->nodes[node].degree++;
-    graph->nodes[node].community->degreeOut++;
     graph->number_edges++;
-
-    //cout << "[GR-ADD-EDGE]: Added " << node << " - " << neighbour << " with weight=" << weight << endl;
-    //cout << "[GR-ADD-EDGE]: New neighbours of " << node << ": ";
-    //graph_print_array(graph, node);
-    //cout << endl;
 
     return true;
 }
@@ -239,11 +212,8 @@ bool graph_contains_edge(Graph* graph, long src, long dst){
 
         if(graph->nodes[src].neighbours[m] == dst)
             return true;
-        else if(graph->nodes[src].neighbours[start] == dst)
-            return true;
-        else if(graph->nodes[src].neighbours[end] == dst)
-            return true;
-        else if(graph->nodes[src].neighbours[m] < dst){
+
+        if(graph->nodes[src].neighbours[m] < dst){
             start = m+1;
         }
         else{
@@ -255,51 +225,33 @@ bool graph_contains_edge(Graph* graph, long src, long dst){
 }
 
 long graph_get_edge(Graph* graph, long src, long dst){
-    ////cout << "[GRGETEDGE]: Prechecks" << endl;
     if(graph == NULL)
         return NULL;
 
-    //cout << "[GRGETEDGE]: Node " << src << " with neighbor " << dst << endl;
-    ////cout << "[GRGETEDGE]: Neighbors = ";
-    //graph_print_array(graph, src);
-
-
-    ////cout << "[GRGETEDGE]: Defining variables" << endl;
     long start = 0;
     long end = graph->nodes[src].degree - 1;
     long m;
 
-    ////cout << "[GRGETEDGE]: Iterate..." << endl;
     while (start <= end){
-        ////cout << "[GRGETEDGE]: Start = " << start << " | End = " << end << endl;
         m = (start+end) / 2;
-        ////cout << "[GRGETEDGE]: m="<< graph->neighbours[m] << endl;
 
-        ////cout << "[GRGETEDGE]: Check if neighbor is on the left or right" << endl;
-        ////cout << "[GRGETEDGE]: " << graph->neighbours[m] << " < " << dst << endl;
         if(graph->nodes[src].neighbours[m] == dst) {
-            //cout << "[GRGETEDGE]: Return " << m << endl;
             return m;
         }
         else if(graph->nodes[src].neighbours[start] == dst){
-            //cout << "[GRGETEDGE]: Return " << start << endl;
             return start;
         }
         else if(graph->nodes[src].neighbours[end] == dst){
-            //cout << "[GRGETEDGE]: Return " << end << endl;
             return end;
         }
         else if(graph->nodes[src].neighbours[m] < dst){
-            ////cout << "[GRGETEDGE]: Go on right" << endl;
             start = m+1;
         }
         else{
-            ////cout << "[GRGETEDGE]: Go on left" << endl;
             end = m-1;
         }
     }
 
-    //cout << "[GRGETEDGE]: Not found" << endl;
     return -1;
 }
 
@@ -312,21 +264,12 @@ void graph_print(Graph* graph){
     cout << "Number nodes: "<<graph->number_nodes<<endl;
     cout << "Number edges: "<<graph->number_edges<<endl;
     cout << "Offset: "<<graph->offset<<endl;
-    /*for(int i=0;i<graph->number_nodes;i++){
-        Node node = graph->nodes[i];
-        ////cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
-        for(int j=0;j<node.degree;j++){
-            if(node.id < node.neighbours[j])
-                //cout << node.id << " " << node.neighbours.at(j) << endl;
-        }
-    }*/
 
     for(int i=0;i<graph->number_nodes;i++){
         Node node = graph->nodes[i];
         if(node.id < 0)
             continue;
         cout << node.id << ": ";
-        //cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
         for(int j=0;j<node.degree;j++){
             cout << node.neighbours.at(j) << " (" << node.weight.at(j) << "), ";
         }
@@ -386,7 +329,6 @@ void graph_store_file(char* filename, Graph* graph){
 
     for(int i=0;i<graph->number_nodes;i++){
         Node node = graph->nodes[i];
-        ////cout << "Considering node "<<node.id<<" with degree "<<node.degree<<endl;
         for(int j=0;j<node.degree;j++){
             if(node.id < node.neighbours[j])
                 output << node.id << " " << node.neighbours.at(j) << endl;
@@ -397,80 +339,7 @@ void graph_store_file(char* filename, Graph* graph){
 }
 
 
-
-
-long graph_compute_triangles(Graph* graph){
-    if(graph == NULL)
-        return 0;
-
-    long count = 0;
-
-    for(int i=0;i<graph->number_nodes; i++){
-        graph->nodes[i].number_triangles = graph_count_triangles_node(graph, i);
-        count += graph->nodes[i].number_triangles;
-    }
-
-    return count;
-}
-
-long graph_count_triangles_node(Graph* graph, long node){
-    if(graph == NULL || node < 0)
-        return 0;
-
-    long count = 0;
-
-    for(int j=0; j < graph->nodes[node].degree; j++){
-        long neighbor = graph->nodes[node].neighbours.at(j);
-
-        long start_nodeV = graph_index_least_great_element(graph->nodes[node].neighbours, graph->nodes[node].degree, neighbor);
-        long start_nodeU = graph_index_least_great_element(graph->nodes[neighbor].neighbours, graph->nodes[neighbor].degree, neighbor);
-
-        ////cout << "Node " << node << " neighbor " << neighbor << endl;
-        ////cout << "Node start: " << start_nodeV << " end: " << end_nodeV << endl;
-        ////cout << "Neigh start: " << start_nodeU << " end: " << end_nodeU << endl;
-
-        if(start_nodeU >= 0 && start_nodeV >= 0)
-            count += graph_count_intersections(graph->nodes[node].neighbours, graph->nodes[node].degree, start_nodeV, graph->nodes[neighbor].neighbours, graph->nodes[neighbor].degree, start_nodeU);
-    }
-    return count;
-}
-
-/**
- * Count how many intersections (same elements) there are in the 2 arrays
- * @param array1 Array of neighbors
- * @param start1 Starting point to count the intersections
- * @param end1 Last index to check
- * @param start2 Starting point to count the intersection
- * @param end2 Last index to check
- * @return
- */
-long graph_count_intersections(vector<long> array1, long length1, long start1, vector<long> array2, long length2, long start2){
-    long i = start1;
-    long j = start2;
-    long count = 0;
-
-    while( i < length1 && j < length2 ){
-        // If equal --> intersection
-        if(array1.at(i) == array2.at(j))
-        {
-            count++;
-            i++;
-            j++;
-        }
-
-        else if(array1.at(i) < array2.at(j))
-            i++;
-
-        else if(array2.at(j) < array1.at(i))
-            j++;
-    }
-
-    return count;
-}
-
-
 long graph_index_least_great_element(vector<long> array, long array_length, long value){
-    // Array is already ordered
     for(int i=0;i<array_length; i++){
         if(array.at(i) > value)
             return i;
@@ -488,73 +357,6 @@ void graph_print_array(Graph* graph, long node){
     cout << endl;
 }
 
-/*void graph_communities_to_file(Graph* graph, char* filename){
-    //cout << "[GR-COMM-FILE] Initializing" << endl;
-    ofstream input;
-    //cout << "[GR-COMM-FILE] Opening file" << endl;
-    input.open(filename, ios::out);
-
-    //COL1 = node_id
-    //COL2 = cluster_id
-    //cout << "[GR-COMM-FILE] Iterating on all nodes. If node-id > 0 then it is still a community" << endl;
-    for (int i = 0; i < graph->number_nodes; ++i) {
-        if(graph->nodes[i].id < 0)
-            continue;
-
-        //cout << "[GR-COMM-FILE] Community " << i << " with number elements = " << graph->nodes[i].community->number_nodes << endl;
-        for (int j = 0; j < graph->nodes[i].community->number_nodes; ++j) {
-            input << graph->nodes[i].community->array[j] + graph->offset << " " << i << endl;
-        }
-    }
-
-    //cout << "[GR-COMM-FILE] Closing file" << endl;
-    input.close();
-}*/
-
-void graph_communities_to_file(Graph* graph, char* filename){
-    //cout << "[GR-COMM-FILE] Initializing" << endl;
-    ofstream input;
-    //cout << "[GR-COMM-FILE] Opening file" << endl;
-    input.open(filename, ios::out);
-
-    //COL1 = node_id
-    //COL2 = cluster_id
-    //cout << "[GR-COMM-FILE] Iterating on all nodes. If node-id > 0 then it is still a community" << endl;
-    for (int i = 0; i < graph->number_nodes; ++i) {
-        long comm_id = community_find_boss(graph->nodes[i].community)->node;
-        string str_nodes =
-        vector<long> community;
-
-
-        //input << i + graph->offset << " " << comm_id << endl;
-    }
-
-    //cout << "[GR-COMM-FILE] Closing file" << endl;
-    input.close();
-}
-
-long* graph_get_communities(Graph* graph){
-    if(graph == NULL)
-        return NULL;
-
-    long* communities = new long[graph->number_communities];
-    long comm_index = 0;
-
-    //cout << "#######################" << endl;
-    //cout << "Available communities: ";
-    for (int i = 0; i < graph->number_nodes; ++i) {
-        if(graph->nodes[i].id >= 0)
-        {
-            communities[comm_index++] = i;
-            //cout << i << " ";
-        }
-    }
-    //cout << endl;
-    //cout << "#######################" << endl;
-
-    return communities;
-}
-
 bool graph_substitute_neighbour(Graph* graph, long node, long old_node, long new_node){
     if(graph == NULL)
         return false;
@@ -566,10 +368,7 @@ bool graph_substitute_neighbour(Graph* graph, long node, long old_node, long new
     long index_new_node = graph_get_edge(graph, node, new_node);
 
     if(index_new_node < 0){
-        //change link
         if(index_old_node >= 0) {
-            //cout << "[GRSUB]: The new node is not a neighbor of " << node << endl;
-            //TODO: FIX PROBLEM --> the edge doesn't have !
             long weight = graph->nodes[node].weight.at(index_old_node);
             graph->nodes[node].neighbours.at(index_old_node) = new_node;
             graph_sort_new_neighbor(graph, node, index_old_node);
@@ -584,9 +383,6 @@ bool graph_substitute_neighbour(Graph* graph, long node, long old_node, long new
         graph_remove_edge(graph, node, old_node);
     }
 
-    ////cout << "[GRSUB]: Neighbors of " << node << " after modification: ";
-    //graph_print_array(graph, node);
-    //cout << "[GRSUB]: Return" << endl;
     return true;
 }
 
@@ -630,55 +426,164 @@ void swap_vector(vector<long>* array, long index1, long index2){
     array->at(index2) = tmp;
 }
 
-bool graph_merge_communities(Graph* graph, long v, long u, long weight){
-    if(graph == NULL)
-        return false;
+void page_rank(Graph* graph, double alpha, int iterations){
+    double* P = new double[graph->number_nodes];
 
-    if(graph->nodes[v].community == NULL || graph->nodes[u].community == NULL){
-        cout << "--------- ERRORE ---------" << endl;
+    double probability_come_from_neighbour = 0;
+    double probability_of_teletrasport = 0;
+
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        P[i] = 1.0/((double)graph->number_nodes);
     }
 
-    community_merge(graph->nodes[v].community, graph->nodes[u].community, weight);
+    for (int k = 0; k < iterations; ++k) {
+        for (long i = 0; i < graph->number_nodes; ++i) {
+            probability_of_teletrasport = 1.0/((double)graph->number_nodes);
+            probability_come_from_neighbour = 0;
 
-    for (long i = 0; i < graph->nodes[u].degree; ++i) {
-        long neighbours = graph->nodes[u].neighbours[i];
+            for (long j = 0; j < graph->nodes[i].degree; ++j) {
+                long neighbor = graph->nodes[i].neighbours[j];
 
-        if(neighbours == v)
-            continue;
+                probability_come_from_neighbour += (1.0 / ((double)graph->nodes[neighbor].degree)) * P[neighbor];
+            }
 
-        graph_substitute_neighbour(graph, neighbours, u, v);
+            P[i] = (1.0-alpha) * probability_come_from_neighbour + alpha * probability_of_teletrasport;
+        }
     }
 
-    graph_remove_edge(graph, v, u);
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        graph->nodes[i].community->pr_value = 0;
+    }
 
-    graph->number_communities--;
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        graph->nodes[i].community->pr_value += P[i];
+    }
 
-    graph->nodes[u].id = -1;
-
-    return true;
+    delete [] P;
 }
 
-long graph_get_sum_weight(Graph* graph, long node){
+
+// ########### TRIANGLES ###############
+
+long graph_compute_triangles(Graph* graph){
     if(graph == NULL)
         return 0;
 
-    long sum = 0;
-    for (int i = 0; i < graph->nodes[node].weight.size(); ++i) {
-        sum += graph->nodes[node].weight[i];
+    long count = 0;
+
+    for(int i=0;i<graph->number_nodes; i++){
+        //graph->nodes[i].number_triangles = graph_count_triangles_node(graph, i);
+        graph_set_triangles_node(graph, i);
+        count += graph->nodes[i].number_triangles;
     }
-    return sum;
+
+    return count;
 }
 
-long graph_get_max_weight(Graph* graph, long node){
-    if(graph == NULL)
+void graph_set_triangles_node(Graph* graph, long node){
+    if(graph == NULL || node < 0)
+        return;
+
+    for(int j=0; j < graph->nodes[node].degree; j++){
+        long neighbor = graph->nodes[node].neighbours.at(j);
+
+        for (int i = 0; i < graph->nodes[neighbor].degree; ++i) {
+            long neighbor_d2 = graph->nodes[neighbor].neighbours.at(i);
+
+            if(graph_contains_edge(graph, node, neighbor_d2)) {
+                graph->nodes[node].triangles_nodes.push_back(neighbor_d2);
+                graph->nodes[node].community->neighbours_triangle.push_back(neighbor_d2);
+                graph->nodes[node].community->number_triangles++;
+            }
+        }
+    }
+
+    graph->nodes[node].number_triangles = graph->nodes[node].triangles_nodes.size();
+}
+
+long graph_count_triangles_node(Graph* graph, long node){
+    if(graph == NULL || node < 0)
         return 0;
 
-    long max = 0;
-    long weight = 0;
-    for (int i = 0; i < graph->nodes[node].weight.size(); ++i) {
-        weight = graph->nodes[node].weight[i];
-        if(weight > max)
-            max = weight;
+    long count = 0;
+
+    for(int j=0; j < graph->nodes[node].degree; j++){
+        long neighbor = graph->nodes[node].neighbours.at(j);
+
+        long start_nodeV = graph_index_least_great_element(graph->nodes[node].neighbours, graph->nodes[node].degree, neighbor);
+        long start_nodeU = graph_index_least_great_element(graph->nodes[neighbor].neighbours, graph->nodes[neighbor].degree, neighbor);
+
+        if(start_nodeU >= 0 && start_nodeV >= 0)
+            count += graph_count_intersections(graph->nodes[node].neighbours, graph->nodes[node].degree, start_nodeV, graph->nodes[neighbor].neighbours, graph->nodes[neighbor].degree, start_nodeU);
     }
-    return max;
+    return count;
+}
+
+/**
+ * Count how many intersections (same elements) there are in the 2 arrays
+ * @param array1 Array of neighbors
+ * @param start1 Starting point to count the intersections
+ * @param end1 Last index to check
+ * @param start2 Starting point to count the intersection
+ * @param end2 Last index to check
+ * @return
+ */
+long graph_count_intersections(vector<long> array1, long length1, long start1, vector<long> array2, long length2, long start2){
+    long i = start1;
+    long j = start2;
+    long count = 0;
+
+    while( i < length1 && j < length2 ){
+        if(array1.at(i) == array2.at(j))
+        {
+            count++;
+            i++;
+            j++;
+        }
+
+        else if(array1.at(i) < array2.at(j))
+            i++;
+
+        else if(array2.at(j) < array1.at(i))
+            j++;
+    }
+
+    return count;
+}
+
+
+void graph_print_communities(Graph* graph){
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        if(graph->nodes[i].community->ID == i){
+            community_print(graph->nodes[i].community);
+        }
+    }
+}
+
+void graph_fix_communities(Graph* graph){
+    for (int i = 0; i < graph->number_nodes; ++i) {
+        if(graph->nodes[i].community->ID == i){
+            community_fix_duplicates_and_order(graph->nodes[i].community);
+        }
+    }
+}
+
+void graph_merge(Graph* graph, long nodeA, long nodeB){
+    if(graph == NULL)
+        return;
+
+    Community* communityA = graph->nodes[nodeA].community;
+    Community* communityB = graph->nodes[nodeB].community;
+
+    //cout << "[GMERGE]: Changing communities to all neighbours" << endl;
+    for (int i = 0; i < communityB->nodes.size(); ++i) {
+        long n = communityB->nodes[i];
+
+        graph->nodes[n].community = communityA;
+    }
+
+    //cout << "[GMERGE]: Merging communities " << communityA->ID << " and " << communityB->ID << endl;
+    community_merge(graph, communityA, communityB);
+    //cout << "[GMERGE]: Deleting old community" << endl;
+    community_deinit(communityB);
 }

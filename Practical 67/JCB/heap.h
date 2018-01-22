@@ -8,8 +8,6 @@
 struct Item{
     long node;
     long degree;
-    long weight;
-    long max_weight;
 };
 typedef struct Item Item;
 
@@ -18,6 +16,7 @@ struct Heap{
     Item* heap;
     long* node_indexes;
     long length;
+    long pointer;
 };
 typedef struct Heap Heap;
 
@@ -31,6 +30,9 @@ long heap_first_element(Heap* heap);
 
 void heap_bubble_down(Heap* heap, long i);
 void heap_bubble_up(Heap* heap, long i);
+
+long heap_pointer_next(Heap* heap);
+void heap_fix(Heap* heap, Graph* graph);
 
 void heap_build(Heap* heap);
 long left(long i);

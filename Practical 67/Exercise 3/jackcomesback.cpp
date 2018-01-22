@@ -56,6 +56,7 @@ void jackcomesback(Graph* graph, long number_communities, int pagerank_iteration
 
 void jcb_iteration(Graph* graph, Heap* heap, long node, int pagerank_iterations, double pagerank_alpha){
     cout << "[JCBIT]: Remaining communities = " << heap->length << endl;
+    cout << "[JCBIT]: Degree of " << node << " = " << graph->nodes[node].degree << endl;
 
     long best_neighbor;
     long start_time;
