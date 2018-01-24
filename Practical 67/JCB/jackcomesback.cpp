@@ -89,7 +89,7 @@ long jackcomesback_best_neighbour(Graph* graph, long node){
     long index_max = 0;
     double val = 0.0;
 
-    for (int i = 0; i < community->neighbours.size(); ++i) {
+    for (int i = 0; i < community->number_neighbour; ++i) {
         triangles_to_comm[i] = community_get_numbers_triangle_to_comm(graph, community, graph->nodes[community->neighbours[i]].community);
         intersections[i] = community_get_intersections(community, graph->nodes[community->neighbours[i]].community);
         val = community_get_merge_value(community,graph->nodes[community->neighbours[i]].community, intersections[i], triangles_to_comm[i]);

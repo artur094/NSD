@@ -246,7 +246,7 @@ bool community_get_neighbour_index(Community* community, long node){
 
     //Binary search
     long start = 0;
-    long end = community->number_neighbour;
+    long end = community->number_neighbour-1;
     long m;
 
     while(start<=end){
